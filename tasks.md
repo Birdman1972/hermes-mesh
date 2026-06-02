@@ -10,7 +10,7 @@
 
 | 項目 | 值 |
 |---|---|
-| tasks.md 版本 | **v1.4** |
+| tasks.md 版本 | **v1.5** |
 | 最後更新 | 2026-06-02 |
 | 對應 README 版本 | v0.1.3 |
 | 維護者 | Ken + AI 助手 |
@@ -118,7 +118,7 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | ID | 標題 | 狀態 | 依賴 | 優先 |
 |---|---|---|---|---|
 | T07 | Clone hermes-mesh 到 Yggdrasill | ✅ DONE | T01 | P0 |
-| T08 | Yggdrasill hermes gateway 安裝並設 standby | 🔲 TODO | T07 | P0 |
+| T08 | Yggdrasill hermes gateway 安裝並設 standby | ✅ DONE | T07 | P0 |
 | T09 | Yggdrasill 獨立 Telegram/Discord bot token 設定 | 🔲 TODO | T08 | P0 |
 | T10 | 設定 Lai.Fu → Yggdrasill 免密 SSH key | ✅ DONE | T11 | P0 |
 | T11 | 確認/修正 Yggdrasill SSH port 與連線參數 | ✅ DONE | — | P0 |
@@ -139,14 +139,14 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 - **依賴：** T01
 - **Notes：** 本 session 確認 `/home/ken/hermes-mesh/` 已存在，無需額外 clone。
 
-### T08 — Yggdrasill hermes gateway 安裝並設 standby · 🔲 TODO
+### T08 — Yggdrasill hermes gateway 安裝並設 standby · ✅ DONE
 - **描述：** 在 Yggdrasill 安裝 hermes gateway，但設為 **disabled（開機不自啟）+ stopped**，符合 standby 模式。
 - **DoD：**
-  - `systemctl --user is-active hermes-gateway.service` → `inactive`
-  - `systemctl --user is-enabled hermes-gateway.service` → `disabled`
-  - 手動 `systemctl --user start hermes-gateway.service` 能成功拉起（測完再 stop+disable 還原）。
+  - `systemctl --user is-active hermes-gateway.service` → `inactive` ✅（2026-06-02 確認）
+  - `systemctl --user is-enabled hermes-gateway.service` → `disabled` ✅（2026-06-02 確認）
+  - 手動 `systemctl --user start hermes-gateway.service` 能成功拉起 — ⏳ 待 T09 設定 token 後驗證
 - **依賴：** T07
-- **Notes：** 步驟見 `yggdrasill/standby.md` 與 README「Yggdrasill（備援層）」。standby 必須 disable，否則開機自啟會破壞「平時沉睡」前提。
+- **Notes：** hermes v0.15.1 安裝於 `~/.local/bin/hermes`，service unit 於 `~/.config/systemd/user/hermes-gateway.service`。安裝方式：官方 curl installer（--skip-browser）。第三條 DoD 暫緩，需先完成 T09（API key + bot token）。
 
 ### T09 — Yggdrasill 獨立 Telegram/Discord bot token 設定 · 🔲 TODO
 - **描述：** 為 Yggdrasill 申請 **獨立** 的 Telegram + Discord bot，並寫入其 `~/.hermes/.env`。
@@ -304,3 +304,4 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | 2026-06-02 | v1.2 | T10/T11 標記 DONE（含 DoD evidence）、Q1/Q2 關閉、session handoff 更新為本日進度。 | Ken + Claude |
 | 2026-06-02 | v1.3 | Lai.Fu hostname 更名 openclaw → Lai-Fu-Hermes，README/tasks.md 同步更新。 | Ken + Claude |
 | 2026-06-02 | v1.4 | T07 標記 DONE（Yggdrasill 已有 repo，本 session 確認）；修正 R9 違規（移除 Next action 中的明文密碼）；Next action 更新從 T08 開始。 | Ken + Claude |
+| 2026-06-02 | v1.5 | T08 標記 DONE（hermes v0.15.1 安裝，is-active=inactive, is-enabled=disabled ✅）；第三條 DoD 待 T09 完成後驗證。 | Ken + Claude |
