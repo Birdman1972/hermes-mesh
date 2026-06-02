@@ -10,7 +10,7 @@
 
 | 項目 | 值 |
 |---|---|
-| tasks.md 版本 | **v1.6** |
+| tasks.md 版本 | **v1.7** |
 | 最後更新 | 2026-06-02 |
 | 對應 README 版本 | v0.1.3 |
 | 維護者 | Ken + AI 助手 |
@@ -253,14 +253,17 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 
 ### Current Topology State（每個 session 開始前核對）
 
-| 檢查項目 | 預期狀態 | 最後驗證 |
+> ⚠️ **異常狀態（2026-06-02）**：Wall.E DOWN，Yggdrasill 正在 failover 接管中。明天 Wall.E 開機後執行 handback。
+
+| 檢查項目 | 當前狀態 | 最後驗證 |
 |---|---|---|
-| Wall.E hermes-gateway.service | **active** | 2026-06-02 |
-| Lai.Fu hermes-watchdog.timer | **active (waiting)** | 2026-06-02 |
-| Yggdrasill hermes-gateway.service | **inactive / disabled** | 待確認（T08 前） |
+| Wall.E hermes-gateway.service | 🔴 **DOWN**（機器關機，預計明天開機） | 2026-06-02 |
+| Lai.Fu hermes-watchdog.timer | **active**，fail count 持續累積 | 2026-06-02 |
+| Yggdrasill hermes-gateway.service | 🟡 **active**（failover 接管中） | 2026-06-02 21:16 |
 | Lai.Fu → Yggdrasill SSH (port 19522) | **key auth OK** | 2026-06-02 |
-| Lai.Fu fail count (`/tmp/walle-fail-count`) | **0** | 2026-06-02 |
-| Lai.Fu lockfile (`/run/user/*/laifu-active`) | **不存在** | 2026-06-02 |
+| Lai.Fu fail count (`/tmp/walle-fail-count`) | **382+**（Wall.E down 3h） | 2026-06-02 |
+| Lai.Fu lockfile (`/run/user/*/laifu-active`) | **存在**（failover 已觸發） | 2026-06-02 |
+| Yggdrasill Tailscale IP | **100.93.159.12**（已確認在 Tailscale 上，T11 紀錄有誤） | 2026-06-02 |
 
 ### Forbidden States（絕對不允許的狀態）
 
@@ -272,19 +275,23 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 ---
 
 ### 上一個 session 摘要（2026-06-02）
-- 完成 T01–T06：repo 建立、三層架構（dual-brain 審查）、canonical README v0.1.1、Lai.Fu watchdog 全套腳本實作並部署、Lai.Fu→Wall.E SSH 驗證。
-- 建立 tasks.md v1.1（Opus 4.8 + GPT-5.5 雙大腦協作，R1-R13 規則）。
-- 完成 T11：確認 Yggdrasill SSH port=19522（非假設的 22），Tailscale 未加入。
-- 完成 T10：Lai.Fu → Yggdrasill:19522 免密 SSH key 設定，`id` 驗證 ✅。
-- 更新腳本 `activate-failover.sh` / `handback.sh`，加入 `YGGDRASILL_SSH_PORT=19522`。
-- 發現：Wall.E 已有 Yggdrasill key 但受 `command="scp -t /backup/..."` 限制（備份用途）。
-- **目前狀態：** T07/T10/T11 完成；T08（gateway 安裝 standby）、T09（獨立 token）待執行。
+- 完成 T08：hermes v0.15.1 安裝於 Yggdrasill（curl installer --skip-browser），gateway service installed。
+- 完成 T09：Telegram/Discord token 從 `~/projects/yggdrasill/deploy/.env` 複製至 `~/.hermes/.env`，gateway 啟動驗證 ✅。
+- 新增 ROADMAP.md：架構演進路線（冷備援→熱備援→多活）、雙大腦研究結果、lease gate 優先決策。
+- 修正 bug：`hermes send telegram` → `hermes send -t telegram`（activate-failover.sh + handback.sh），修前通知靜默失敗。
+- 確認 Yggdrasill 在 Tailscale 上（IP: 100.93.159.12），T11 的「未加入 Tailscale」為誤記。
+- T12 真實 failover 部分驗證（items 1–5 PASS）：Wall.E 真實 down，Lai.Fu 偵測觸發，lockfile 存在，Yggdrasill gateway active。
+- **目前狀態：** Yggdrasill 正在 failover 接管中；Wall.E 明天開機後執行 handback 完成 T12 items 6–10。
 
 ### Next recommended action（下一個 session 從這裡開始）
-1. **T08**：在 Yggdrasill 安裝 hermes gateway 並設 standby（disabled + stopped）；參考 README「Yggdrasill（備援層）」
-2. **T09**：為 Yggdrasill 申請獨立 Telegram/Discord bot token 並設定
-3. **T12**：端到端 failover 演練（verification matrix，9 項 PASS）
-4. **T13**：handback 對稱 debounce（3 次連續成功才交還）
+
+> ⚠️ **系統異常中**：Yggdrasill gateway active，Wall.E DOWN。接手後先確認狀態再操作。
+
+1. **確認 Wall.E 已開機**：`nc -z -w5 192.168.81.166 16622 && echo up || echo down`
+2. **手動執行 handback**：在 Lai.Fu 上執行 `cd ~/hermes-mesh/lai-fu && ./handback.sh`，驗證 T12 items 6–10
+3. **驗收 T12**：確認 verification matrix 全部 10 項 PASS（見 T12 DoD）
+4. **修正 T11 文件**：Yggdrasill Tailscale IP=100.93.159.12，更新 README 節點規格表（目前誤記「未加入 Tailscale」）
+5. **T13**：handback 對稱 debounce（3 次連續成功才交還）
 
 ### 接手前必讀
 - 本檔案 §0（30 秒簡報）+ §1（通用規則 R1–R9）。
@@ -306,3 +313,4 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | 2026-06-02 | v1.4 | T07 標記 DONE（Yggdrasill 已有 repo，本 session 確認）；修正 R9 違規（移除 Next action 中的明文密碼）；Next action 更新從 T08 開始。 | Ken + Claude |
 | 2026-06-02 | v1.5 | T08 標記 DONE（hermes v0.15.1 安裝，is-active=inactive, is-enabled=disabled ✅）；第三條 DoD 待 T09 完成後驗證。 | Ken + Claude |
 | 2026-06-02 | v1.6 | T08 第三條 DoD 補齊（手動 start 成功驗證）；T09 標記 DONE（token 設定 + gateway 連線實測）。 | Ken + Claude |
+| 2026-06-02 | v1.7 | 修正 hermes send -t 語法 bug；更新 Topology State（failover 異常狀態）；Yggdrasill Tailscale IP=100.93.159.12 發現（T11 誤記）；Next action 更新為明天 handback 流程。 | Ken + Claude |
