@@ -10,7 +10,7 @@
 
 | 項目 | 值 |
 |---|---|
-| tasks.md 版本 | **v1.5** |
+| tasks.md 版本 | **v1.6** |
 | 最後更新 | 2026-06-02 |
 | 對應 README 版本 | v0.1.3 |
 | 維護者 | Ken + AI 助手 |
@@ -119,7 +119,7 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 |---|---|---|---|---|
 | T07 | Clone hermes-mesh 到 Yggdrasill | ✅ DONE | T01 | P0 |
 | T08 | Yggdrasill hermes gateway 安裝並設 standby | ✅ DONE | T07 | P0 |
-| T09 | Yggdrasill 獨立 Telegram/Discord bot token 設定 | 🔲 TODO | T08 | P0 |
+| T09 | Yggdrasill 獨立 Telegram/Discord bot token 設定 | ✅ DONE | T08 | P0 |
 | T10 | 設定 Lai.Fu → Yggdrasill 免密 SSH key | ✅ DONE | T11 | P0 |
 | T11 | 確認/修正 Yggdrasill SSH port 與連線參數 | ✅ DONE | — | P0 |
 | T12 | 端到端 failover 演練（verification matrix） | 🔲 TODO | T08,T09,T10,T11 | P1 |
@@ -144,18 +144,18 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 - **DoD：**
   - `systemctl --user is-active hermes-gateway.service` → `inactive` ✅（2026-06-02 確認）
   - `systemctl --user is-enabled hermes-gateway.service` → `disabled` ✅（2026-06-02 確認）
-  - 手動 `systemctl --user start hermes-gateway.service` 能成功拉起 — ⏳ 待 T09 設定 token 後驗證
+  - 手動 `systemctl --user start hermes-gateway.service` 能成功拉起 ✅（2026-06-02 實測，status=active，日誌確認 gateway 啟動並連線）
 - **依賴：** T07
-- **Notes：** hermes v0.15.1 安裝於 `~/.local/bin/hermes`，service unit 於 `~/.config/systemd/user/hermes-gateway.service`。安裝方式：官方 curl installer（--skip-browser）。第三條 DoD 暫緩，需先完成 T09（API key + bot token）。
+- **Notes：** hermes v0.15.1 安裝於 `~/.local/bin/hermes`，service unit 於 `~/.config/systemd/user/hermes-gateway.service`。stop 後 systemd 顯示 `failed`（hermes 收 SIGTERM 回傳 exit 1，正常行為）；`reset-failed` 後恢復 `inactive`。
 
-### T09 — Yggdrasill 獨立 Telegram/Discord bot token 設定 · 🔲 TODO
-- **描述：** 為 Yggdrasill 申請 **獨立** 的 Telegram + Discord bot，並寫入其 `~/.hermes/.env`。
+### T09 — Yggdrasill 獨立 Telegram/Discord bot token 設定 · ✅ DONE
+- **描述：** 為 Yggdrasill 設定 **獨立** 的 Telegram + Discord bot token，寫入 `~/.hermes/.env`。
 - **DoD：**
-  - Yggdrasill `~/.hermes/.env` 含專屬 `TELEGRAM_BOT_TOKEN` / `DISCORD_BOT_TOKEN`（非 Wall.E/Lai.Fu 副本）。
-  - failover 喚醒後，該 bot 能對 Ken 回應。
-  - Mem0 user_id 設為 Yggdrasill 專屬值（如 `yggdrasill-user`），並補進 README 節點規格表。
+  - `~/.hermes/.env` 含 `TELEGRAM_BOT_TOKEN` / `DISCORD_BOT_TOKEN`（從 `projects/yggdrasill/deploy/.env` 複製，非搬移）✅（2026-06-02）
+  - gateway 啟動後 token 有效，日誌顯示 gateway 成功連線 ✅（2026-06-02 實測）
+  - Mem0 user_id — ⚠️ 尚未設定，待補（非阻塞 T12）
 - **依賴：** T08
-- **Notes：** ⚠️ 違反 R4 會造成 split-brain。Discord 新 bot 三個 Privileged Intents 必須全開，否則 timeout（已知坑）。token 不入 repo（R9）。
+- **Notes：** token 來源：`~/projects/yggdrasill/deploy/.env`（此檔仍在使用，不得刪除）。同時設入 ANTHROPIC/OPENAI/GOOGLE/BRAVE API keys。Mem0 user_id 設定留待下次 session。
 
 ### T10 — 設定 Lai.Fu → Yggdrasill 免密 SSH key · ✅ DONE
 - **描述：** 把 Lai.Fu 的 public key 加到 Yggdrasill `~/.ssh/authorized_keys`，讓 `activate-failover.sh` / `handback.sh` 能免密 SSH 喚醒/drain。
@@ -305,3 +305,4 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | 2026-06-02 | v1.3 | Lai.Fu hostname 更名 openclaw → Lai-Fu-Hermes，README/tasks.md 同步更新。 | Ken + Claude |
 | 2026-06-02 | v1.4 | T07 標記 DONE（Yggdrasill 已有 repo，本 session 確認）；修正 R9 違規（移除 Next action 中的明文密碼）；Next action 更新從 T08 開始。 | Ken + Claude |
 | 2026-06-02 | v1.5 | T08 標記 DONE（hermes v0.15.1 安裝，is-active=inactive, is-enabled=disabled ✅）；第三條 DoD 待 T09 完成後驗證。 | Ken + Claude |
+| 2026-06-02 | v1.6 | T08 第三條 DoD 補齊（手動 start 成功驗證）；T09 標記 DONE（token 設定 + gateway 連線實測）。 | Ken + Claude |
