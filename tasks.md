@@ -10,9 +10,9 @@
 
 | 項目 | 值 |
 |---|---|
-| tasks.md 版本 | **v1.3** |
+| tasks.md 版本 | **v1.4** |
 | 最後更新 | 2026-06-02 |
-| 對應 README 版本 | v0.1.2 |
+| 對應 README 版本 | v0.1.3 |
 | 維護者 | Ken + AI 助手 |
 
 ---
@@ -24,7 +24,7 @@
 | 角色 | 節點 | 一句話 | 平時狀態 |
 |---|---|---|---|
 | L0 主腦 PRIMARY | **Wall.E** | 唯一對外服務的腦，跑 agent loop | gateway **active** |
-| L1 監測 WATCHDOG | **Lai.Fu** (Raspberry Pi 2) | 每 30s 探測 Wall.E，掛了就觸發 failover；不跑 agent loop | watchdog timer **active** |
+| L1 監測 WATCHDOG | **Lai.Fu** (Raspberry Pi 2, hostname: Lai-Fu-Hermes) | 每 30s 探測 Wall.E，掛了就觸發 failover；不跑 agent loop | watchdog timer **active** |
 | L2 備援 STANDBY | **Yggdrasill** (x86_64) | 全能力備援腦，平時沉睡 | gateway **disabled / inactive** |
 
 連線資訊（重建/操作時最常用）：
@@ -32,7 +32,7 @@
 | 節點 | LAN IP | Tailscale IP | SSH port | user |
 |---|---|---|---|---|
 | Wall.E | 192.168.81.166 | 100.119.88.20 | **16622** | ken |
-| Lai.Fu | 192.168.81.167 | 100.75.192.113 | 22 | ken |
+| Lai.Fu (Lai-Fu-Hermes) | 192.168.81.167 | 100.75.192.113 | 22 | ken |
 | Yggdrasill | 192.168.81.195 | 未加入 Tailscale | **19522**（已確認） | ken |
 
 GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
@@ -302,4 +302,5 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | 2026-06-02 | v1.0 | 初版：建立持久化任務記憶。記錄 DONE T01–T06、TODO T07–T17、通用規則 R1–R9、開放問題 Q1–Q4、Session 交接區。對應 README v0.1.1。 | Ken + Claude（Opus 4.8 起草） |
 | 2026-06-02 | v1.1 | 補充 R10–R13（hard invariant + 操作安全規則）、Current Topology State、Forbidden States（GPT-5.5 gap review 結果）。 | Ken + Claude |
 | 2026-06-02 | v1.2 | T10/T11 標記 DONE（含 DoD evidence）、Q1/Q2 關閉、session handoff 更新為本日進度。 | Ken + Claude |
-| 2026-06-02 | v1.3 | T07 標記 DONE（Yggdrasill 已有 repo，本 session 確認）；修正 R9 違規（移除 Next action 中的明文密碼）；Next action 更新從 T08 開始。 | Ken + Claude |
+| 2026-06-02 | v1.3 | Lai.Fu hostname 更名 openclaw → Lai-Fu-Hermes，README/tasks.md 同步更新。 | Ken + Claude |
+| 2026-06-02 | v1.4 | T07 標記 DONE（Yggdrasill 已有 repo，本 session 確認）；修正 R9 違規（移除 Next action 中的明文密碼）；Next action 更新從 T08 開始。 | Ken + Claude |
