@@ -7,18 +7,19 @@ WALLE_HOST="100.119.88.20"
 WALLE_SSH_PORT="16622"
 WALLE_USER="ken"
 YGGDRASILL_HOST="192.168.81.195"
+YGGDRASILL_SSH_PORT="19522"
 YGGDRASILL_USER="ken"
 EXPORT_FILE="/tmp/laifu-failover-tasks-$(date +%Y%m%d-%H%M%S).sql"
 
 logger -t hermes-watchdog "Handback: Wall.E recovered"
 
 # 停止 Yggdrasill gateway（drain gracefully）
-ssh -o ConnectTimeout=10 -o BatchMode=yes \
+ssh -o ConnectTimeout=10 -o BatchMode=yes -p "${YGGDRASILL_SSH_PORT}" \
     "${YGGDRASILL_USER}@${YGGDRASILL_HOST}" \
     'systemctl --user stop hermes-gateway.service' 2>/dev/null || true
 
 # Export Yggdrasill failover-era tasks to Wall.E
-ssh -o ConnectTimeout=10 -o BatchMode=yes \
+ssh -o ConnectTimeout=10 -o BatchMode=yes -p "${YGGDRASILL_SSH_PORT}" \
     "${YGGDRASILL_USER}@${YGGDRASILL_HOST}" \
     'sqlite3 ~/.hermes/kanban/kanban.db .dump 2>/dev/null || echo ""' > "$EXPORT_FILE"
 
