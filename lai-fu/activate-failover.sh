@@ -12,7 +12,7 @@ touch "$LOCK_FILE"
 logger -t hermes-watchdog "FAILOVER ACTIVATED: Wall.E unreachable"
 
 # 通知 Ken via Lai.Fu Telegram bot
-PATH="/home/ken/.local/bin:$PATH" hermes send telegram \
+PATH="/home/ken/.local/bin:$PATH" hermes send -t telegram \
     "⚠️ Wall.E unreachable — Lai.Fu 監測觸發備援流程，正在喚醒 Yggdrasill。" 2>/dev/null || true
 
 # 喚醒 Yggdrasill hermes gateway

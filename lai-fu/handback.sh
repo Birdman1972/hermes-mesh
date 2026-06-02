@@ -28,7 +28,7 @@ scp -P "$WALLE_SSH_PORT" -o BatchMode=yes \
 
 rm -f "$LOCK_FILE"
 
-PATH="/home/ken/.local/bin:$PATH" hermes send telegram \
+PATH="/home/ken/.local/bin:$PATH" hermes send -t telegram \
     "✅ Wall.E 已恢復，Yggdrasill 備援結束。failover 期間任務已匯出供 Wall.E 合併。" 2>/dev/null || true
 
 logger -t hermes-watchdog "Handback complete"
