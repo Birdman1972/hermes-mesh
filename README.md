@@ -65,7 +65,7 @@
    ┌──────────────────────────────────────┐   ┌──────────────────────────────┐
    │ Lai.Fu — WATCHDOG / TRIGGER          │   │ Yggdrasill — STANDBY BRAIN    │
    │ Raspberry Pi 2 · armhf 32-bit · 1GB  │   │ x86_64 · LAN 192.168.81.195   │
-   │ hostname: Lai-Fu (openclaw)          │   │                               │
+   │ hostname: Lai-Fu-Hermes          │   │                               │
    │ LAN 192.168.81.167 / TS 100.75.192.113│  │  hermes gateway: INSTALLED    │
    │ SSH :22                              │   │  但 DISABLED（不自啟）        │
    │                                      │   │                               │
@@ -114,7 +114,7 @@
 
 | 項目 | 值 |
 |---|---|
-| Hostname | `Lai-Fu`（別名 `openclaw`） |
+| Hostname | `Lai-Fu-Hermes`（舊名 `openclaw`，2026-06-02 更名） |
 | 硬體 | Raspberry Pi 2 Model B |
 | 架構 | armhf 32-bit (ARMv7) |
 | RAM | 1GB |
@@ -442,8 +442,8 @@ ssh ken@192.168.81.195 'systemctl --user is-active hermes-gateway.service'
 
 | 來源 | 目標 | Port | 用途 |
 |---|---|---|---|
-| Lai.Fu (ken@openclaw) | Wall.E :16622 | `~/.ssh/authorized_keys` on Wall.E | watchdog L2 探測 |
-| Lai.Fu (ken@openclaw) | Yggdrasill :22 | `~/.ssh/authorized_keys` on Yggdrasill | failover 喚醒 / handback drain |
+| Lai.Fu (ken@Lai-Fu-Hermes, key comment: ken@openclaw) | Wall.E :16622 | `~/.ssh/authorized_keys` on Wall.E | watchdog L2 探測 |
+| Lai.Fu (ken@Lai-Fu-Hermes, key comment: ken@openclaw) | Yggdrasill :19522 | `~/.ssh/authorized_keys` on Yggdrasill | failover 喚醒 / handback drain |
 | Wall.E (ken) | Lai.Fu :22 | `~/.ssh/authorized_keys` on Lai.Fu | 管理 |
 
 **重要規則：**
@@ -461,3 +461,4 @@ ssh ken@192.168.81.195 'systemctl --user is-active hermes-gateway.service'
 | 2026-06-02 | v0.1.0 | 初版：建立 canonical reference。涵蓋三層架構、節點規格、failover/handback 規格、split-brain 防護、design decisions（dual-brain Opus 4.7 + GPT-5.5 審查）、known limitations、future work。 | Ken + Claude |
 | 2026-06-02 | v0.1.1 | 補充 Operational Runbook（日常確認、手動 failover/handback、故障排查）、Disaster Scenarios、Credential Inventory（GPT-5.5 gap review 結果）。 | Ken + Claude |
 | 2026-06-02 | v0.1.2 | 更新 Yggdrasill 節點規格：SSH port=19522（已確認）、Tailscale 未加入、scripts 變數速查補 YGGDRASILL_SSH_PORT。 | Ken + Claude |
+| 2026-06-02 | v0.1.3 | Lai.Fu hostname 更名：openclaw → Lai-Fu-Hermes（Linux hostname 不支援底線）。 | Ken + Claude |
