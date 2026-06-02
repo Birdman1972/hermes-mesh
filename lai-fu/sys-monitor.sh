@@ -29,7 +29,4 @@ SEND_MSG() {
 if [ -n "$ALERTS" ]; then
   SEND_MSG "$(printf '⚠️ %s 系統異常警告\n%b\n📊 狀態: 溫度 %s°C | 記憶體 %s%% | 磁碟 %s%%' \
     "$HOSTNAME" "$ALERTS" "$TEMP" "$MEM_USED" "$DISK_USED")"
-else
-  SEND_MSG "$(printf '📊 %s 系統狀態: 溫度 %s°C | 記憶體 %s%% | 磁碟 %s%% ✅ 正常' \
-    "$HOSTNAME" "$TEMP" "$MEM_USED" "$DISK_USED")"
 fi
