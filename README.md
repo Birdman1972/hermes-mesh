@@ -138,8 +138,10 @@
 |---|---|
 | 架構 | x86_64 |
 | LAN IP | `192.168.81.195` |
+| SSH port | `19522` |
+| Tailscale | 未加入（走 LAN） |
 | 角色 | core compute node，全能力備援 |
-| hermes gateway | 已安裝，但 **DISABLED（不自啟）** |
+| hermes gateway | 待安裝（T08），設為 **DISABLED（不自啟）** |
 | 跑 agent loop | ✅ 具備能力（僅 failover 時啟用） |
 | kanban.db | 本地獨立（failover 期間使用，恢復後匯出給 Wall.E） |
 
@@ -250,6 +252,7 @@ LOCK_FILE="/run/user/$(id -u)/laifu-active"
 `lai-fu/activate-failover.sh` / `handback.sh`：
 ```
 YGGDRASILL_HOST="192.168.81.195"
+YGGDRASILL_SSH_PORT="19522"
 YGGDRASILL_USER="ken"
 HERMES="/home/ken/.local/bin/hermes"
 ```
@@ -457,3 +460,4 @@ ssh ken@192.168.81.195 'systemctl --user is-active hermes-gateway.service'
 |---|---|---|---|
 | 2026-06-02 | v0.1.0 | 初版：建立 canonical reference。涵蓋三層架構、節點規格、failover/handback 規格、split-brain 防護、design decisions（dual-brain Opus 4.7 + GPT-5.5 審查）、known limitations、future work。 | Ken + Claude |
 | 2026-06-02 | v0.1.1 | 補充 Operational Runbook（日常確認、手動 failover/handback、故障排查）、Disaster Scenarios、Credential Inventory（GPT-5.5 gap review 結果）。 | Ken + Claude |
+| 2026-06-02 | v0.1.2 | 更新 Yggdrasill 節點規格：SSH port=19522（已確認）、Tailscale 未加入、scripts 變數速查補 YGGDRASILL_SSH_PORT。 | Ken + Claude |

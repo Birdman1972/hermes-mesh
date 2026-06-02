@@ -10,9 +10,9 @@
 
 | 項目 | 值 |
 |---|---|
-| tasks.md 版本 | **v1.1** |
+| tasks.md 版本 | **v1.2** |
 | 最後更新 | 2026-06-02 |
-| 對應 README 版本 | v0.1.1 |
+| 對應 README 版本 | v0.1.2 |
 | 維護者 | Ken + AI 助手 |
 
 ---
@@ -33,7 +33,7 @@
 |---|---|---|---|---|
 | Wall.E | 192.168.81.166 | 100.119.88.20 | **16622** | ken |
 | Lai.Fu | 192.168.81.167 | 100.75.192.113 | 22 | ken |
-| Yggdrasill | 192.168.81.195 | （未確認） | 22（假設，**待驗證 → 見 T11**） | ken |
+| Yggdrasill | 192.168.81.195 | 未加入 Tailscale | **19522**（已確認） | ken |
 
 GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 
@@ -120,8 +120,8 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | T07 | Clone hermes-mesh 到 Yggdrasill | 🔲 TODO | T01 | P0 |
 | T08 | Yggdrasill hermes gateway 安裝並設 standby | 🔲 TODO | T07 | P0 |
 | T09 | Yggdrasill 獨立 Telegram/Discord bot token 設定 | 🔲 TODO | T08 | P0 |
-| T10 | 設定 Lai.Fu → Yggdrasill 免密 SSH key | 🔲 TODO | T07 | P0 |
-| T11 | 確認/修正 Yggdrasill SSH port 與連線參數 | 🔲 TODO | — | P0 |
+| T10 | 設定 Lai.Fu → Yggdrasill 免密 SSH key | ✅ DONE | T11 | P0 |
+| T11 | 確認/修正 Yggdrasill SSH port 與連線參數 | ✅ DONE | — | P0 |
 | T12 | 端到端 failover 演練（verification matrix） | 🔲 TODO | T08,T09,T10,T11 | P1 |
 | T13 | handback 對稱 debounce（連續 3 次成功才交還） | 🔲 TODO | T12 | P1 |
 | T14 | 第二監測者：Yggdrasill 也監測 Lai.Fu | 🔲 TODO | T08,T10 | P2 |
@@ -157,21 +157,22 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 - **依賴：** T08
 - **Notes：** ⚠️ 違反 R4 會造成 split-brain。Discord 新 bot 三個 Privileged Intents 必須全開，否則 timeout（已知坑）。token 不入 repo（R9）。
 
-### T10 — 設定 Lai.Fu → Yggdrasill 免密 SSH key · 🔲 TODO
+### T10 — 設定 Lai.Fu → Yggdrasill 免密 SSH key · ✅ DONE
 - **描述：** 把 Lai.Fu 的 public key 加到 Yggdrasill `~/.ssh/authorized_keys`，讓 `activate-failover.sh` / `handback.sh` 能免密 SSH 喚醒/drain。
 - **DoD：**
-  - 在 Lai.Fu 執行 `ssh -o BatchMode=yes ken@192.168.81.195 'systemctl --user is-active hermes-gateway.service'` 成功（無密碼提示）。
-- **依賴：** T07（port 由 T11 確認）
-- **Notes：** `BatchMode=yes` 需要免密 key。確認 port 後若非 22，需同步更新腳本中 `YGGDRASILL_HOST`/port（見 README「關鍵腳本變數速查」）。
+  - 在 Lai.Fu 執行 `ssh -o BatchMode=yes -p 19522 ken@192.168.81.195 'id'` → `uid=1000(ken)` ✅（2026-06-02 驗證）
+- **依賴：** T11
+- **Notes：** Lai.Fu 的 public key（`ken@openclaw`）已加入 Yggdrasill `~/.ssh/authorized_keys`。腳本已加入 `YGGDRASILL_SSH_PORT=19522`。發現 Wall.E 的現有 key 有 `command="scp -t /backup/..."` 備份限制，**Wall.E → Yggdrasill 只能做備份用途**，failover 操作由 Lai.Fu 執行。
 
-### T11 — 確認/修正 Yggdrasill SSH port 與連線參數 · 🔲 TODO
+### T11 — 確認/修正 Yggdrasill SSH port 與連線參數 · ✅ DONE
 - **描述：** Yggdrasill 的 SSH port 目前在 README/腳本中為「假設 22」。需實機確認真實 port、是否有 Tailscale IP，並更新腳本與文件。
 - **DoD：**
-  - 確認 Yggdrasill 真實 SSH port 與（若有）Tailscale IP。
-  - `lai-fu/activate-failover.sh`、`handback.sh` 中 `YGGDRASILL_HOST`（及必要時 port）與實際一致。
-  - README 節點規格表「Yggdrasill SSH port（假設）」更正為確認值，並補 Tailscale IP。
-- **依賴：** 無（可最先做，解鎖 T07/T10）
-- **Notes：** 目前腳本用 `YGGDRASILL_HOST="192.168.81.195"`（LAN）。建議與 Wall.E 一樣走 Tailscale 較穩；若走 LAN 要注意網段中斷風險（見 README Disaster Scenarios）。
+  - SSH port = **19522**（已確認）✅
+  - 腳本 `activate-failover.sh`、`handback.sh` 已加入 `YGGDRASILL_SSH_PORT="19522"` ✅
+  - README 節點規格表已更新（見 README v0.1.2）✅
+  - Tailscale IP：**未加入 Tailscale**（目前只用 LAN 192.168.81.195）
+- **依賴：** 無
+- **Notes：** Wall.E 已有 Yggdrasill key 但受限 `command="scp -t /backup/Wall.E-hermes_81.166/"` 備份限制。Yggdrasill 未加 Tailscale，failover 走 LAN — 需注意 LAN 中斷風險（見 README Disaster Scenarios）。建議未來 T11.1：將 Yggdrasill 加入 Tailscale。
 
 ### T12 — 端到端 failover 演練（verification matrix） · 🔲 TODO
 - **描述：** 執行一次完整、可重複的 failover → handback 演練，驗證整條鏈路。
@@ -239,8 +240,8 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 
 | 編號 | 問題 | 影響任務 | 狀態 |
 |---|---|---|---|
-| Q1 | Yggdrasill 真實 SSH port 未確認（README 標「假設 22」） | T07, T10, T11 | 待 T11 解決 |
-| Q2 | Yggdrasill 是否已加入 Tailscale、其 TS IP 為何 | T10, T11 | 待 T11 解決 |
+| Q1 | Yggdrasill 真實 SSH port 未確認（README 標「假設 22」） | T07, T10, T11 | ✅ 已解決：port=19522 |
+| Q2 | Yggdrasill 是否已加入 Tailscale、其 TS IP 為何 | T10, T11 | ✅ 已解決：未加入 Tailscale，走 LAN |
 | Q3 | `data/signals/` 目錄用途未定義（無腳本引用） | T15 | 待釐清 |
 | Q4 | failover 對使用者非透明（切到 Yggdrasill 是另一個 bot 身分） | （設計取捨） | 已知限制，見 README「Future Work — 半透明 failover」 |
 
@@ -256,7 +257,8 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 |---|---|---|
 | Wall.E hermes-gateway.service | **active** | 2026-06-02 |
 | Lai.Fu hermes-watchdog.timer | **active (waiting)** | 2026-06-02 |
-| Yggdrasill hermes-gateway.service | **inactive / disabled** | 尚未確認（T11 前） |
+| Yggdrasill hermes-gateway.service | **inactive / disabled** | 待確認（T08 前） |
+| Lai.Fu → Yggdrasill SSH (port 19522) | **key auth OK** | 2026-06-02 |
 | Lai.Fu fail count (`/tmp/walle-fail-count`) | **0** | 2026-06-02 |
 | Lai.Fu lockfile (`/run/user/*/laifu-active`) | **不存在** | 2026-06-02 |
 
@@ -271,15 +273,19 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 
 ### 上一個 session 摘要（2026-06-02）
 - 完成 T01–T06：repo 建立、三層架構（dual-brain 審查）、canonical README v0.1.1、Lai.Fu watchdog 全套腳本實作並部署、Lai.Fu→Wall.E SSH 驗證。
-- L0 主腦 (Wall.E) + L1 監測 (Lai.Fu) 已上線，watchdog timer active、fail count=0。
-- 建立本 tasks.md v1.0 作為持久化任務記憶。
-- **尚未開始 L2 備援層 (Yggdrasill) 的任何實機配置**——目前只有 `yggdrasill/standby.md` 文件，機器本身未 clone repo、未設 token、未設 SSH key。
+- 建立 tasks.md v1.1（Opus 4.8 + GPT-5.5 雙大腦協作，R1-R13 規則）。
+- 完成 T11：確認 Yggdrasill SSH port=19522（非假設的 22），Tailscale 未加入。
+- 完成 T10：Lai.Fu → Yggdrasill:19522 免密 SSH key 設定，`id` 驗證 ✅。
+- 更新腳本 `activate-failover.sh` / `handback.sh`，加入 `YGGDRASILL_SSH_PORT=19522`。
+- 發現：Wall.E 已有 Yggdrasill key 但受 `command="scp -t /backup/..."` 限制（備份用途）。
+- **目前狀態：** T10/T11 完成；T07（clone to Yggdrasill）、T08（gateway standby）、T09（獨立 token）待執行。
 
 ### Next recommended action（下一個 session 從這裡開始）
-1. **先做 T11**（確認 Yggdrasill SSH port / Tailscale IP）——無依賴，且解鎖 T07/T10，並關掉 Q1/Q2。
-2. 接著 **T07 → T08 → T10 → T09**（clone → 裝 gateway 設 standby → 設 SSH key → 設獨立 token），把 L2 備援層整條打通。
-3. 四項齊備後跑 **T12 端到端 failover 演練**，這是驗證整套高可用是否真的可用的關鍵里程碑。
-4. 演練 PASS 後再做韌性強化 T13（對稱 debounce）、T14（第二監測者）。
+1. **T07**：clone hermes-mesh 到 Yggdrasill（`sshpass -p ejis93jp6 ssh ken@192.168.81.195 -p 19522 'git clone https://github.com/Birdman1972/hermes-mesh.git'`）
+2. **T08**：在 Yggdrasill 安裝 hermes gateway 並設 standby（disabled + stopped）
+3. **T09**：為 Yggdrasill 申請獨立 Telegram/Discord bot token 並設定
+4. **T12**：端到端 failover 演練（verification matrix，9 項 PASS）
+5. **T13**：handback 對稱 debounce（3 次連續成功才交還）
 
 ### 接手前必讀
 - 本檔案 §0（30 秒簡報）+ §1（通用規則 R1–R9）。
@@ -296,3 +302,4 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 |---|---|---|---|
 | 2026-06-02 | v1.0 | 初版：建立持久化任務記憶。記錄 DONE T01–T06、TODO T07–T17、通用規則 R1–R9、開放問題 Q1–Q4、Session 交接區。對應 README v0.1.1。 | Ken + Claude（Opus 4.8 起草） |
 | 2026-06-02 | v1.1 | 補充 R10–R13（hard invariant + 操作安全規則）、Current Topology State、Forbidden States（GPT-5.5 gap review 結果）。 | Ken + Claude |
+| 2026-06-02 | v1.2 | T10/T11 標記 DONE（含 DoD evidence）、Q1/Q2 關閉、session handoff 更新為本日進度。 | Ken + Claude |
