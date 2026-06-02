@@ -10,7 +10,7 @@
 
 | 項目 | 值 |
 |---|---|
-| tasks.md 版本 | **v1.2** |
+| tasks.md 版本 | **v1.3** |
 | 最後更新 | 2026-06-02 |
 | 對應 README 版本 | v0.1.2 |
 | 維護者 | Ken + AI 助手 |
@@ -117,7 +117,7 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 
 | ID | 標題 | 狀態 | 依賴 | 優先 |
 |---|---|---|---|---|
-| T07 | Clone hermes-mesh 到 Yggdrasill | 🔲 TODO | T01 | P0 |
+| T07 | Clone hermes-mesh 到 Yggdrasill | ✅ DONE | T01 | P0 |
 | T08 | Yggdrasill hermes gateway 安裝並設 standby | 🔲 TODO | T07 | P0 |
 | T09 | Yggdrasill 獨立 Telegram/Discord bot token 設定 | 🔲 TODO | T08 | P0 |
 | T10 | 設定 Lai.Fu → Yggdrasill 免密 SSH key | ✅ DONE | T11 | P0 |
@@ -131,13 +131,13 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 
 ---
 
-### T07 — Clone hermes-mesh 到 Yggdrasill · 🔲 TODO
+### T07 — Clone hermes-mesh 到 Yggdrasill · ✅ DONE
 - **描述：** 在 Yggdrasill (192.168.81.195) 上 clone 本 repo，使其擁有 `yggdrasill/standby.md` 與全套腳本。
 - **DoD：**
-  - Yggdrasill 上存在 `~/hermes-mesh/`，`git remote -v` 指向 <https://github.com/Birdman1972/hermes-mesh>。
-  - `git log` 含 commit `805273f` 或更新。
+  - Yggdrasill 上存在 `~/hermes-mesh/`，`git remote -v` 指向 <https://github.com/Birdman1972/hermes-mesh>。✅（2026-06-02 確認）
+  - `git log` 含 commit `805273f` 或更新。✅（最新 `6798b65`）
 - **依賴：** T01
-- **Notes：** clone 後即可依 `yggdrasill/standby.md` 操作。需先確認 Yggdrasill 連線（見 T11）。
+- **Notes：** 本 session 確認 `/home/ken/hermes-mesh/` 已存在，無需額外 clone。
 
 ### T08 — Yggdrasill hermes gateway 安裝並設 standby · 🔲 TODO
 - **描述：** 在 Yggdrasill 安裝 hermes gateway，但設為 **disabled（開機不自啟）+ stopped**，符合 standby 模式。
@@ -278,14 +278,13 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 - 完成 T10：Lai.Fu → Yggdrasill:19522 免密 SSH key 設定，`id` 驗證 ✅。
 - 更新腳本 `activate-failover.sh` / `handback.sh`，加入 `YGGDRASILL_SSH_PORT=19522`。
 - 發現：Wall.E 已有 Yggdrasill key 但受 `command="scp -t /backup/..."` 限制（備份用途）。
-- **目前狀態：** T10/T11 完成；T07（clone to Yggdrasill）、T08（gateway standby）、T09（獨立 token）待執行。
+- **目前狀態：** T07/T10/T11 完成；T08（gateway 安裝 standby）、T09（獨立 token）待執行。
 
 ### Next recommended action（下一個 session 從這裡開始）
-1. **T07**：clone hermes-mesh 到 Yggdrasill（`sshpass -p ejis93jp6 ssh ken@192.168.81.195 -p 19522 'git clone https://github.com/Birdman1972/hermes-mesh.git'`）
-2. **T08**：在 Yggdrasill 安裝 hermes gateway 並設 standby（disabled + stopped）
-3. **T09**：為 Yggdrasill 申請獨立 Telegram/Discord bot token 並設定
-4. **T12**：端到端 failover 演練（verification matrix，9 項 PASS）
-5. **T13**：handback 對稱 debounce（3 次連續成功才交還）
+1. **T08**：在 Yggdrasill 安裝 hermes gateway 並設 standby（disabled + stopped）；參考 README「Yggdrasill（備援層）」
+2. **T09**：為 Yggdrasill 申請獨立 Telegram/Discord bot token 並設定
+3. **T12**：端到端 failover 演練（verification matrix，9 項 PASS）
+4. **T13**：handback 對稱 debounce（3 次連續成功才交還）
 
 ### 接手前必讀
 - 本檔案 §0（30 秒簡報）+ §1（通用規則 R1–R9）。
@@ -303,3 +302,4 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | 2026-06-02 | v1.0 | 初版：建立持久化任務記憶。記錄 DONE T01–T06、TODO T07–T17、通用規則 R1–R9、開放問題 Q1–Q4、Session 交接區。對應 README v0.1.1。 | Ken + Claude（Opus 4.8 起草） |
 | 2026-06-02 | v1.1 | 補充 R10–R13（hard invariant + 操作安全規則）、Current Topology State、Forbidden States（GPT-5.5 gap review 結果）。 | Ken + Claude |
 | 2026-06-02 | v1.2 | T10/T11 標記 DONE（含 DoD evidence）、Q1/Q2 關閉、session handoff 更新為本日進度。 | Ken + Claude |
+| 2026-06-02 | v1.3 | T07 標記 DONE（Yggdrasill 已有 repo，本 session 確認）；修正 R9 違規（移除 Next action 中的明文密碼）；Next action 更新從 T08 開始。 | Ken + Claude |
