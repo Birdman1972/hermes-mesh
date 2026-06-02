@@ -21,6 +21,8 @@
 - [Future Work（未來規劃）](#future-work未來規劃)
 - [Version History（版本歷史）](#version-history版本歷史)
 
+> 整體架構演進路線（冷備援→熱備援→多活）與開放決策清單見 [ROADMAP.md](./ROADMAP.md)。
+
 ---
 
 ## 概觀 (Overview)
@@ -344,6 +346,8 @@ failover 時由 Lai.Fu 自動 `start`；handback 時自動 `stop`。亦可手動
 
 ## Future Work（未來規劃，v0.2+）
 
+> 架構演進路線與優先級決策見 [ROADMAP.md](./ROADMAP.md)。
+
 - **handback 對稱 debounce**：要求連續 N 次健康探測（如 3 次）才交還控制，避免 Wall.E flapping 造成抖動切換。
 - **第二監測者 / watchdog 互備**：避免 Lai.Fu 單點失效導致整套 failover 失靈（例如 Yggdrasill 也輕量探測 Lai.Fu）。
 - **半透明 failover**：研究共用 bot 身分或前置代理 (proxy) 讓使用者無感切換，同時不破壞 token 分離的 split-brain 防護。
@@ -461,3 +465,4 @@ ssh ken@192.168.81.195 'systemctl --user is-active hermes-gateway.service'
 | 2026-06-02 | v0.1.0 | 初版：建立 canonical reference。涵蓋三層架構、節點規格、failover/handback 規格、split-brain 防護、design decisions（dual-brain Opus 4.7 + GPT-5.5 審查）、known limitations、future work。 | Ken + Claude |
 | 2026-06-02 | v0.1.1 | 補充 Operational Runbook（日常確認、手動 failover/handback、故障排查）、Disaster Scenarios、Credential Inventory（GPT-5.5 gap review 結果）。 | Ken + Claude |
 | 2026-06-02 | v0.1.2 | 更新 Yggdrasill 節點規格：SSH port=19522（已確認）、Tailscale 未加入、scripts 變數速查補 YGGDRASILL_SSH_PORT。 | Ken + Claude |
+| 2026-06-02 | v0.1.3 | 新增 ROADMAP.md 連結（架構演進路線、備援光譜、多活決策）；TOC 與 Future Work 加指向。 | Ken + Claude |
