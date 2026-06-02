@@ -1,0 +1,12 @@
+[Unit]
+Description=Hermes Mesh Watchdog Timer — runs every 30s
+Requires=hermes-watchdog.service
+
+[Timer]
+OnBootSec=60
+OnUnitActiveSec=30
+Unit=hermes-watchdog.service
+AccuracySec=5
+
+[Install]
+WantedBy=timers.target

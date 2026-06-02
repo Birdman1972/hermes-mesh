@@ -1,0 +1,9 @@
+[Unit]
+Description=Hermes Mesh Watchdog — Wall.E health check
+After=network-online.target tailscaled.service
+
+[Service]
+Type=oneshot
+ExecStart=/home/ken/hermes-mesh/lai-fu/watchdog.sh
+StandardOutput=journal
+StandardError=journal
