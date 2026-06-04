@@ -32,3 +32,4 @@ PATH="/home/ken/.local/bin:$PATH" hermes send -t telegram \
     "✅ Wall.E 已恢復，Yggdrasill 備援結束。failover 期間任務已匯出供 Wall.E 合併。" 2>/dev/null || true
 
 logger -t hermes-watchdog "Handback complete"
+echo 0 > /tmp/walle-success-count

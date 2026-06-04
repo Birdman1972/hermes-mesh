@@ -191,7 +191,7 @@
 
 當 Lai.Fu 偵測到 Wall.E 恢復（且 lockfile 存在）時，由 `handback.sh` 執行控制權交還。
 
-恢復判定：watchdog 完成一次成功的 L1+L2 探測（健康分支）。
+恢復判定：watchdog 完成 L1+L2 探測（健康分支）後累計成功次數；觸發條件：連續 3 次健康探測（`SUCCESS_THRESHOLD=3`，對稱於 failover 的 `FAIL_THRESHOLD`）。
 
 | 步驟 | 動作 |
 |---|---|
@@ -340,7 +340,7 @@ failover 時由 Lai.Fu 自動 `start`；handback 時自動 `stop`。亦可手動
 - **單一守門人 (single watchdog)**
   - 只有 Lai.Fu 在探測 Wall.E。若 Lai.Fu 本身掛掉，failover 不會被觸發（無第二監測者）。
 - **恢復判定較樂觀**
-  - handback 在 watchdog 觀察到一次健康探測即啟動 drain。若 Wall.E 處於 flapping（時好時壞）狀態，可能造成反覆切換（目前靠 90s debounce 緩解，但 handback 端未設對稱的連續成功門檻）。
+  - handback 現已要求連續 `SUCCESS_THRESHOLD=3` 次健康探測才啟動 drain（對稱於 failover 的 `FAIL_THRESHOLD=3`），避免 Wall.E flapping 造成抖動切換。
 
 ---
 
@@ -348,7 +348,7 @@ failover 時由 Lai.Fu 自動 `start`；handback 時自動 `stop`。亦可手動
 
 > 架構演進路線與優先級決策見 [ROADMAP.md](./ROADMAP.md)。
 
-- **handback 對稱 debounce**：要求連續 N 次健康探測（如 3 次）才交還控制，避免 Wall.E flapping 造成抖動切換。
+- ✅ **handback 對稱 debounce**（已實作 v0.1.5）：`SUCCESS_THRESHOLD=3` 連續健康探測才交還控制，對稱於 `FAIL_THRESHOLD=3`，避免 Wall.E flapping 造成抖動切換。
 - **第二監測者 / watchdog 互備**：避免 Lai.Fu 單點失效導致整套 failover 失靈（例如 Yggdrasill 也輕量探測 Lai.Fu）。
 - **半透明 failover**：研究共用 bot 身分或前置代理 (proxy) 讓使用者無感切換，同時不破壞 token 分離的 split-brain 防護。
 - **自動任務調和**：在不讓 Pi 2 進入 write path 的前提下，由 Wall.E 端自動 merge failover-era tasks。
