@@ -6,6 +6,7 @@ SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 SYSTEMD_DIR="${HOME}/.config/systemd/user"
 
 mkdir -p "$SYSTEMD_DIR"
+mkdir -p "$HOME/.local/share/hermes-mesh"
 chmod +x "${SCRIPT_DIR}/watchdog.sh" \
          "${SCRIPT_DIR}/activate-failover.sh" \
          "${SCRIPT_DIR}/handback.sh"

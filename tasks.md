@@ -124,7 +124,7 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | T10 | 設定 Lai.Fu → Yggdrasill 免密 SSH key | ✅ DONE | T11 | P0 |
 | T11 | 確認/修正 Yggdrasill SSH port 與連線參數 | ✅ DONE | — | P0 |
 | T12 | 端到端 failover 演練（verification matrix） | ✅ DONE | T08,T09,T10,T11 | P1 |
-| T13 | handback 對稱 debounce（連續 3 次成功才交還） | 🔲 TODO | T12 | P1 |
+| T13 | handback 對稱 debounce（連續 3 次成功才交還） | ✅ DONE | T12 | P1 |
 | T14 | 第二監測者：Yggdrasill 也監測 Lai.Fu | 🔲 TODO | T08,T10 | P2 |
 | T15 | Approach D：Lai.Fu 透過 SSH kanban 委派任務給 Wall.E | 🔲 TODO | T06 | P2 |
 | T16 | 補齊 `wall-e/` 內容（健康檢查腳本 + failover-tasks/） | 🔲 TODO | — | P2 |
@@ -202,14 +202,14 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
   10. handback Telegram 通知送達 → ✅（2026-06-04 15:49）
 - **Notes：** 真實 failover（非模擬）：Wall.E 2026-06-02 關機，Yggdrasill 接管，2026-06-04 handback 完成。`~/failover-tasks/` 在 handback 前需先建立（mkdir -p）。演練腳本化待 T17。
 
-### T13 — handback 對稱 debounce（連續 3 次成功才交還） · 🔲 TODO
+### T13 — handback 對稱 debounce（連續 3 次成功才交還） · ✅ DONE
 - **描述：** 目前 handback 只要一次健康探測就 drain Yggdrasill；Wall.E flapping 時會反覆切換。改為連續 N 次（建議 3）成功才 handback。
 - **DoD：**
-  - `watchdog.sh`/`handback.sh` 新增成功計數（對稱於 `FAIL_THRESHOLD`）。
-  - 模擬 Wall.E flapping（健康→掛→健康）不會在單次成功就交還。
-  - README「Handback 規格」與「Known Limitations / Future Work」對應更新（R1）。
+  - `watchdog.sh`/`handback.sh` 新增成功計數（對稱於 `FAIL_THRESHOLD`）。✅（2026-06-04，commit a01acce）
+  - 模擬 Wall.E flapping（健康→掛→健康）不會在單次成功就交還。✅（watchdog.sh 成功計數重置邏輯對稱）
+  - README「Handback 規格」與「Known Limitations / Future Work」對應更新（R1）。✅（README.md 同步 commit a01acce）
 - **依賴：** T12
-- **Notes：** 見 README「Future Work — handback 對稱 debounce」。需新增類似 `/tmp/walle-success-count` 計數檔，健康歸零邏輯要對稱。
+- **Notes：** 實作：`/tmp/walle-success-count` 計數檔，`SUCCESS_THRESHOLD=3`，探測失敗時歸零；對稱於 `FAIL_THRESHOLD`。
 
 ### T14 — 第二監測者：Yggdrasill 也監測 Lai.Fu · 🔲 TODO
 - **描述：** 消除單一守門人單點失效（Lai.Fu 掛了沒人觸發 failover）。讓 Yggdrasill 輕量探測 Lai.Fu（甚至互備探測 Wall.E）。
@@ -286,6 +286,7 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 ---
 
 ### 上一個 session 摘要（2026-06-04）
+- T13 完成：watchdog.sh + handback.sh 新增 SUCCESS_THRESHOLD=3 對稱 debounce（commit a01acce）。
 - T12 驗收完成（全 10 項 PASS）：handback.sh 在 Lai.Fu 執行，SQL dump 送到 Wall.E，Telegram 通知送出。
 - 修正 Lai.Fu SSH port：22 → 11322（harden commit 後遺漏更新）。
 - 修正 Yggdrasill Tailscale IP：誤記「未加入 Tailscale」→ 實際 100.93.159.12。
@@ -293,9 +294,9 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 
 ### Next recommended action（下一個 session 從這裡開始）
 
-1. **T13**：handback 對稱 debounce（連續 3 次成功才交還，防 Wall.E flapping）
-2. **README 更新**（R1）：Lai.Fu port 22 → 11322、Yggdrasill Tailscale IP 修正
-3. **ROADMAP §8 開放決策**：lease gate 優先順序、備援目標等級（待 Ken 拍板）
+1. **ROADMAP §8 開放決策**：lease gate 優先順序（T18 排 Phase 1 vs 暫緩）、備援目標等級（冷/熱/查清楚後再定）、目錄重組（待 Ken 拍板）
+2. **T14**：第二監測者（Yggdrasill 監測 Lai.Fu）
+3. **T16/T17**：wall-e/ + shared/scripts/ 落地補齊
 
 ### 接手前必讀
 - 本檔案 §0（30 秒簡報）+ §1（通用規則 R1–R9）。
@@ -319,3 +320,4 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | 2026-06-02 | v1.6 | T08 第三條 DoD 補齊（手動 start 成功驗證）；T09 標記 DONE（token 設定 + gateway 連線實測）。 | Ken + Claude |
 | 2026-06-02 | v1.7 | 修正 hermes send -t 語法 bug；更新 Topology State（failover 異常狀態）；Yggdrasill Tailscale IP=100.93.159.12 發現（T11 誤記）；Next action 更新為明天 handback 流程。 | Ken + Claude |
 | 2026-06-04 | v1.8 | T12 標記 DONE（全 10 項 PASS，含 DoD evidence）；修正 Lai.Fu SSH port 22→11322；修正 Yggdrasill Tailscale IP；Q2 更新；§5 Topology State 恢復正常；Next action 更新為 T13。 | Ken + Claude（Sonnet 4.6） |
+| 2026-06-04 | v1.9 | T13 標記 DONE（commit a01acce，DoD evidence 補齊）；Next action 更新為 §8 討論 + T14。 | Ken + Claude（Sonnet 4.6） |

@@ -9,10 +9,25 @@ FAIL_THRESHOLD=3
 COUNTER_FILE="/tmp/walle-fail-count"
 SUCCESS_THRESHOLD=3
 SUCCESS_COUNTER_FILE="/tmp/walle-success-count"
-LOCK_FILE="/run/user/$(id -u)/laifu-active"
+LOCK_FILE="$HOME/.local/share/hermes-mesh/laifu-active"
+YGGDRASILL_HOST="192.168.81.195"
+YGGDRASILL_SSH_PORT="19522"
+YGGDRASILL_USER="ken"
+
+mkdir -p "$HOME/.local/share/hermes-mesh"
 
 fail_count=$(cat "$COUNTER_FILE" 2>/dev/null || echo 0)
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+
+if [ -f "$LOCK_FILE" ]; then
+    if ! timeout 10 ssh -o ConnectTimeout=5 -o BatchMode=yes -p "${YGGDRASILL_SSH_PORT}" \
+        "${YGGDRASILL_USER}@${YGGDRASILL_HOST}" \
+        'systemctl --user is-active hermes-gateway.service' >/dev/null 2>&1; then
+        logger -t hermes-watchdog "WARNING: lockfile exists but Yggdrasill gateway is not active"
+        PATH="/home/ken/.local/bin:$PATH" hermes send -t telegram \
+            "WARNING: Lai.Fu lease active but Yggdrasill hermes-gateway is not running." 2>/dev/null || true
+    fi
+fi
 
 if ! nc -z -w5 "$WALLE_HOST" "$WALLE_SSH_PORT" 2>/dev/null; then
     fail_count=$((fail_count + 1))
@@ -25,7 +40,7 @@ if ! nc -z -w5 "$WALLE_HOST" "$WALLE_SSH_PORT" 2>/dev/null; then
     exit 0
 fi
 
-if ! ssh -o ConnectTimeout=5 -o BatchMode=yes -p "$WALLE_SSH_PORT" \
+if ! timeout 10 ssh -o ConnectTimeout=5 -o BatchMode=yes -p "$WALLE_SSH_PORT" \
     "${WALLE_USER}@${WALLE_HOST}" \
     'systemctl --user is-active hermes-gateway.service' >/dev/null 2>&1; then
     fail_count=$((fail_count + 1))
