@@ -69,7 +69,7 @@
    │ Raspberry Pi 2 · armhf 32-bit · 1GB  │   │ x86_64 · LAN 192.168.81.195   │
    │ hostname: Lai-Fu-Hermes          │   │                               │
    │ LAN 192.168.81.167 / TS 100.75.192.113│  │  hermes gateway: INSTALLED    │
-   │ SSH :22                              │   │  但 DISABLED（不自啟）        │
+   │ SSH :11322                           │   │  但 DISABLED（不自啟）        │
    │                                      │   │                               │
    │ systemd timer 每 30s                 │   │  ┌─────────────────────────┐  │
    │ ┌──────────────┐                     │   │  │ full Claude/hermes 能力  │  │
@@ -122,7 +122,7 @@
 | RAM | 1GB |
 | LAN IP | `192.168.81.167` |
 | Tailscale IP | `100.75.192.113` |
-| SSH port | `22` |
+| SSH port | `11322`（hardened 2026-06-04） |
 | SSH 防火牆 (ufw) | 僅允許 LAN + Tailscale |
 | hermes MemoryMax | `512MB` |
 | systemd watchdog | `60s`（Pi 2 BCM2836 硬體最小值，設更低無效） |
@@ -141,9 +141,9 @@
 | 架構 | x86_64 |
 | LAN IP | `192.168.81.195` |
 | SSH port | `19522` |
-| Tailscale | 未加入（走 LAN） |
+| Tailscale IP | `100.93.159.12` |
 | 角色 | core compute node，全能力備援 |
-| hermes gateway | 待安裝（T08），設為 **DISABLED（不自啟）** |
+| hermes gateway | v0.15.1 已安裝，設為 **DISABLED（不自啟，standby 模式）** |
 | 跑 agent loop | ✅ 具備能力（僅 failover 時啟用） |
 | kanban.db | 本地獨立（failover 期間使用，恢復後匯出給 Wall.E） |
 
@@ -467,3 +467,4 @@ ssh ken@192.168.81.195 'systemctl --user is-active hermes-gateway.service'
 | 2026-06-02 | v0.1.2 | 更新 Yggdrasill 節點規格：SSH port=19522（已確認）、Tailscale 未加入、scripts 變數速查補 YGGDRASILL_SSH_PORT。 | Ken + Claude |
 | 2026-06-02 | v0.1.3 | Lai.Fu hostname 更名：openclaw → Lai-Fu-Hermes（Linux hostname 不支援底線）。 | Ken + Claude |
 | 2026-06-02 | v0.1.4 | 新增 ROADMAP.md 連結（架構演進路線、備援光譜、多活決策）；TOC 與 Future Work 加指向。 | Ken + Claude |
+| 2026-06-04 | v0.1.5 | 修正 Lai.Fu SSH port 22→11322（harden commit）；修正 Yggdrasill Tailscale IP（未加入→100.93.159.12）；Yggdrasill hermes gateway 標記已安裝（v0.15.1，T08 完成）。 | Ken + Claude（Sonnet 4.6） |
