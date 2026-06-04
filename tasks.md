@@ -10,8 +10,8 @@
 
 | 項目 | 值 |
 |---|---|
-| tasks.md 版本 | **v1.7** |
-| 最後更新 | 2026-06-02 |
+| tasks.md 版本 | **v1.8** |
+| 最後更新 | 2026-06-04 |
 | 對應 README 版本 | v0.1.3 |
 | 維護者 | Ken + AI 助手 |
 
@@ -32,12 +32,12 @@
 | 節點 | LAN IP | Tailscale IP | SSH port | user |
 |---|---|---|---|---|
 | Wall.E | 192.168.81.166 | 100.119.88.20 | **16622** | ken |
-| Lai.Fu (Lai-Fu-Hermes) | 192.168.81.167 | 100.75.192.113 | 22 | ken |
-| Yggdrasill | 192.168.81.195 | 未加入 Tailscale | **19522**（已確認） | ken |
+| Lai.Fu (Lai-Fu-Hermes) | 192.168.81.167 | 100.75.192.113 | **11322**（hardened） | ken |
+| Yggdrasill | 192.168.81.195 | **100.93.159.12** | **19522**（已確認） | ken |
 
 GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 
-**目前整體進度：** L0 主腦 + L1 監測層已上線並驗證；L2 備援層 (Yggdrasill) 尚未配置；端到端 failover 演練尚未執行。
+**目前整體進度：** L0 主腦 + L1 監測層 + L2 備援層全部上線並驗證；端到端 failover → handback 演練（T12）完成。
 **最關鍵的下一步：** 見 [§5 Session 交接](#5-session-交接handoff) 的「Next recommended action」。
 
 ---
@@ -72,6 +72,7 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | T04 | 實作 lai-fu watchdog 全套腳本 | ✅ DONE |
 | T05 | Lai.Fu 部署 watchdog timer 並驗證 | ✅ DONE |
 | T06 | 驗證 Lai.Fu → Wall.E SSH（L2 探測通路） | ✅ DONE |
+| T12 | 端到端 failover 演練（verification matrix） | ✅ DONE |
 
 ### T01 — 建立 hermes-mesh repo · ✅ DONE
 - **描述：** 建立 GitHub repo 與初始目錄結構。
@@ -122,7 +123,7 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | T09 | Yggdrasill 獨立 Telegram/Discord bot token 設定 | ✅ DONE | T08 | P0 |
 | T10 | 設定 Lai.Fu → Yggdrasill 免密 SSH key | ✅ DONE | T11 | P0 |
 | T11 | 確認/修正 Yggdrasill SSH port 與連線參數 | ✅ DONE | — | P0 |
-| T12 | 端到端 failover 演練（verification matrix） | 🔲 TODO | T08,T09,T10,T11 | P1 |
+| T12 | 端到端 failover 演練（verification matrix） | ✅ DONE | T08,T09,T10,T11 | P1 |
 | T13 | handback 對稱 debounce（連續 3 次成功才交還） | 🔲 TODO | T12 | P1 |
 | T14 | 第二監測者：Yggdrasill 也監測 Lai.Fu | 🔲 TODO | T08,T10 | P2 |
 | T15 | Approach D：Lai.Fu 透過 SSH kanban 委派任務給 Wall.E | 🔲 TODO | T06 | P2 |
@@ -172,9 +173,9 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
   - README 節點規格表已更新（見 README v0.1.2）✅
   - Tailscale IP：**未加入 Tailscale**（目前只用 LAN 192.168.81.195）
 - **依賴：** 無
-- **Notes：** Wall.E 已有 Yggdrasill key 但受限 `command="scp -t /backup/Wall.E-hermes_81.166/"` 備份限制。Yggdrasill 未加 Tailscale，failover 走 LAN — 需注意 LAN 中斷風險（見 README Disaster Scenarios）。建議未來 T11.1：將 Yggdrasill 加入 Tailscale。
+- **Notes：** Wall.E 已有 Yggdrasill key 但受限 `command="scp -t /backup/Wall.E-hermes_81.166/"` 備份限制。Yggdrasill 在 Tailscale（IP: **100.93.159.12**），failover 走 LAN 192.168.81.195。建議未來更新腳本改走 Tailscale 提升備援路徑可靠性。
 
-### T12 — 端到端 failover 演練（verification matrix） · 🔲 TODO
+### T12 — 端到端 failover 演練（verification matrix） · ✅ DONE
 - **描述：** 執行一次完整、可重複的 failover → handback 演練，驗證整條鏈路。
 - **DoD（verification matrix，全部 PASS）：**
   1. 在 Wall.E `systemctl --user stop hermes-gateway.service` 模擬掛點。
@@ -188,7 +189,18 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
   9. lockfile 已移除。
   10. Ken 收到 handback 完成通知。
 - **依賴：** T08, T09, T10, T11
-- **Notes：** 演練前先公告 Ken（會切換對外 bot 身分）。把本演練腳本化（可放 `shared/scripts/`，關聯 T17）。結果寫回本 Notes。
+- **DoD evidence（2026-06-04 全 10 項 PASS）：**
+  1. Wall.E gateway stop → ✅（2026-06-02 實測）
+  2. Lai.Fu 偵測 3 次失敗，fail count 達 382+ → ✅
+  3. lockfile `/run/user/1000/laifu-active` 出現 → ✅
+  4. Telegram failover 通知送達 → ✅
+  5. Yggdrasill gateway active（SSH 喚醒） → ✅
+  6. Wall.E 開機後 gateway auto-start（enabled service） → ✅
+  7. Yggdrasill gateway inactive（handback.sh drain） → ✅（2026-06-04）
+  8. SQL dump `laifu-failover-tasks-20260604-154919.sql` 到 Wall.E `~/failover-tasks/` → ✅
+  9. lockfile 移除 → ✅（GONE，2026-06-04 確認）
+  10. handback Telegram 通知送達 → ✅（2026-06-04 15:49）
+- **Notes：** 真實 failover（非模擬）：Wall.E 2026-06-02 關機，Yggdrasill 接管，2026-06-04 handback 完成。`~/failover-tasks/` 在 handback 前需先建立（mkdir -p）。演練腳本化待 T17。
 
 ### T13 — handback 對稱 debounce（連續 3 次成功才交還） · 🔲 TODO
 - **描述：** 目前 handback 只要一次健康探測就 drain Yggdrasill；Wall.E flapping 時會反覆切換。改為連續 N 次（建議 3）成功才 handback。
@@ -241,7 +253,7 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | 編號 | 問題 | 影響任務 | 狀態 |
 |---|---|---|---|
 | Q1 | Yggdrasill 真實 SSH port 未確認（README 標「假設 22」） | T07, T10, T11 | ✅ 已解決：port=19522 |
-| Q2 | Yggdrasill 是否已加入 Tailscale、其 TS IP 為何 | T10, T11 | ✅ 已解決：未加入 Tailscale，走 LAN |
+| Q2 | Yggdrasill 是否已加入 Tailscale、其 TS IP 為何 | T10, T11 | ✅ 已解決：Tailscale IP=100.93.159.12（T11 誤記「未加入」已修正） |
 | Q3 | `data/signals/` 目錄用途未定義（無腳本引用） | T15 | 待釐清 |
 | Q4 | failover 對使用者非透明（切到 Yggdrasill 是另一個 bot 身分） | （設計取捨） | 已知限制，見 README「Future Work — 半透明 failover」 |
 
@@ -253,17 +265,16 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 
 ### Current Topology State（每個 session 開始前核對）
 
-> ⚠️ **異常狀態（2026-06-02）**：Wall.E DOWN，Yggdrasill 正在 failover 接管中。明天 Wall.E 開機後執行 handback。
-
 | 檢查項目 | 當前狀態 | 最後驗證 |
 |---|---|---|
-| Wall.E hermes-gateway.service | 🔴 **DOWN**（機器關機，預計明天開機） | 2026-06-02 |
-| Lai.Fu hermes-watchdog.timer | **active**，fail count 持續累積 | 2026-06-02 |
-| Yggdrasill hermes-gateway.service | 🟡 **active**（failover 接管中） | 2026-06-02 21:16 |
+| Wall.E hermes-gateway.service | 🟢 **active**（正常運行） | 2026-06-04 |
+| Lai.Fu hermes-watchdog.timer | **active**，fail count=0 | 2026-06-04 |
+| Yggdrasill hermes-gateway.service | 🟢 **inactive**（standby 正常） | 2026-06-04 |
 | Lai.Fu → Yggdrasill SSH (port 19522) | **key auth OK** | 2026-06-02 |
-| Lai.Fu fail count (`/tmp/walle-fail-count`) | **382+**（Wall.E down 3h） | 2026-06-02 |
-| Lai.Fu lockfile (`/run/user/*/laifu-active`) | **存在**（failover 已觸發） | 2026-06-02 |
-| Yggdrasill Tailscale IP | **100.93.159.12**（已確認在 Tailscale 上，T11 紀錄有誤） | 2026-06-02 |
+| Lai.Fu fail count (`/tmp/walle-fail-count`) | **0** | 2026-06-04 |
+| Lai.Fu lockfile (`/run/user/*/laifu-active`) | **GONE**（handback 完成） | 2026-06-04 |
+| Lai.Fu SSH port | **11322**（hardened，非 22） | 2026-06-04 |
+| Yggdrasill Tailscale IP | **100.93.159.12** | 2026-06-04 |
 
 ### Forbidden States（絕對不允許的狀態）
 
@@ -274,24 +285,17 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 
 ---
 
-### 上一個 session 摘要（2026-06-02）
-- 完成 T08：hermes v0.15.1 安裝於 Yggdrasill（curl installer --skip-browser），gateway service installed。
-- 完成 T09：Telegram/Discord token 從 `~/projects/yggdrasill/deploy/.env` 複製至 `~/.hermes/.env`，gateway 啟動驗證 ✅。
-- 新增 ROADMAP.md：架構演進路線（冷備援→熱備援→多活）、雙大腦研究結果、lease gate 優先決策。
-- 修正 bug：`hermes send telegram` → `hermes send -t telegram`（activate-failover.sh + handback.sh），修前通知靜默失敗。
-- 確認 Yggdrasill 在 Tailscale 上（IP: 100.93.159.12），T11 的「未加入 Tailscale」為誤記。
-- T12 真實 failover 部分驗證（items 1–5 PASS）：Wall.E 真實 down，Lai.Fu 偵測觸發，lockfile 存在，Yggdrasill gateway active。
-- **目前狀態：** Yggdrasill 正在 failover 接管中；Wall.E 明天開機後執行 handback 完成 T12 items 6–10。
+### 上一個 session 摘要（2026-06-04）
+- T12 驗收完成（全 10 項 PASS）：handback.sh 在 Lai.Fu 執行，SQL dump 送到 Wall.E，Telegram 通知送出。
+- 修正 Lai.Fu SSH port：22 → 11322（harden commit 後遺漏更新）。
+- 修正 Yggdrasill Tailscale IP：誤記「未加入 Tailscale」→ 實際 100.93.159.12。
+- 系統恢復正常：Wall.E active、Yggdrasill inactive、fail count=0、lockfile GONE。
 
 ### Next recommended action（下一個 session 從這裡開始）
 
-> ⚠️ **系統異常中**：Yggdrasill gateway active，Wall.E DOWN。接手後先確認狀態再操作。
-
-1. **確認 Wall.E 已開機**：`nc -z -w5 192.168.81.166 16622 && echo up || echo down`
-2. **手動執行 handback**：在 Lai.Fu 上執行 `cd ~/hermes-mesh/lai-fu && ./handback.sh`，驗證 T12 items 6–10
-3. **驗收 T12**：確認 verification matrix 全部 10 項 PASS（見 T12 DoD）
-4. **修正 T11 文件**：Yggdrasill Tailscale IP=100.93.159.12，更新 README 節點規格表（目前誤記「未加入 Tailscale」）
-5. **T13**：handback 對稱 debounce（3 次連續成功才交還）
+1. **T13**：handback 對稱 debounce（連續 3 次成功才交還，防 Wall.E flapping）
+2. **README 更新**（R1）：Lai.Fu port 22 → 11322、Yggdrasill Tailscale IP 修正
+3. **ROADMAP §8 開放決策**：lease gate 優先順序、備援目標等級（待 Ken 拍板）
 
 ### 接手前必讀
 - 本檔案 §0（30 秒簡報）+ §1（通用規則 R1–R9）。
@@ -314,3 +318,4 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | 2026-06-02 | v1.5 | T08 標記 DONE（hermes v0.15.1 安裝，is-active=inactive, is-enabled=disabled ✅）；第三條 DoD 待 T09 完成後驗證。 | Ken + Claude |
 | 2026-06-02 | v1.6 | T08 第三條 DoD 補齊（手動 start 成功驗證）；T09 標記 DONE（token 設定 + gateway 連線實測）。 | Ken + Claude |
 | 2026-06-02 | v1.7 | 修正 hermes send -t 語法 bug；更新 Topology State（failover 異常狀態）；Yggdrasill Tailscale IP=100.93.159.12 發現（T11 誤記）；Next action 更新為明天 handback 流程。 | Ken + Claude |
+| 2026-06-04 | v1.8 | T12 標記 DONE（全 10 項 PASS，含 DoD evidence）；修正 Lai.Fu SSH port 22→11322；修正 Yggdrasill Tailscale IP；Q2 更新；§5 Topology State 恢復正常；Next action 更新為 T13。 | Ken + Claude（Sonnet 4.6） |
