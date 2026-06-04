@@ -1,0 +1,9 @@
+[Unit]
+Description=Hermes Lai.Fu Monitor
+
+[Service]
+Type=oneshot
+ExecStart=/home/ken/hermes-mesh/yggdrasill/laifu-monitor.sh
+
+[Install]
+WantedBy=default.target
