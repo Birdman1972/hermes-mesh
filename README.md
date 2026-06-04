@@ -338,7 +338,7 @@ failover 時由 Lai.Fu 自動 `start`；handback 時自動 `stop`。亦可手動
 - **手動任務調和 (manual task reconciliation)**
   - failover 期間 Yggdrasill 產生的任務以 SQL dump 形式搬到 Wall.E，需人工/Wall.E 主導合併，無自動 merge。
 - **單一守門人 (single watchdog)**
-  - 只有 Lai.Fu 在探測 Wall.E。若 Lai.Fu 本身掛掉，failover 不會被觸發（無第二監測者）。
+  - Lai.Fu 負責探測 Wall.E 並觸發 failover；Yggdrasill 已加入輕量探測 Lai.Fu（T14，v0.1.6），Lai.Fu 掛掉時發 Telegram 告警，但不自動接管（防 split-brain）。
 - **恢復判定較樂觀**
   - handback 現已要求連續 `SUCCESS_THRESHOLD=3` 次健康探測才啟動 drain（對稱於 failover 的 `FAIL_THRESHOLD=3`），避免 Wall.E flapping 造成抖動切換。
 
@@ -349,7 +349,7 @@ failover 時由 Lai.Fu 自動 `start`；handback 時自動 `stop`。亦可手動
 > 架構演進路線與優先級決策見 [ROADMAP.md](./ROADMAP.md)。
 
 - ✅ **handback 對稱 debounce**（已實作 v0.1.5）：`SUCCESS_THRESHOLD=3` 連續健康探測才交還控制，對稱於 `FAIL_THRESHOLD=3`，避免 Wall.E flapping 造成抖動切換。
-- **第二監測者 / watchdog 互備**：避免 Lai.Fu 單點失效導致整套 failover 失靈（例如 Yggdrasill 也輕量探測 Lai.Fu）。
+- ✅ **第二監測者 / watchdog 互備**（已實作 v0.1.6）：Yggdrasill 每 2 分鐘探測 Lai.Fu（nc TCP + SSH 雙層），連續 3 次失敗發 Telegram 告警，不自動接管（防 split-brain）。部署：`systemctl --user enable --now hermes-laifu-monitor.timer`（在 Yggdrasill 執行）。
 - **半透明 failover**：研究共用 bot 身分或前置代理 (proxy) 讓使用者無感切換，同時不破壞 token 分離的 split-brain 防護。
 - **自動任務調和**：在不讓 Pi 2 進入 write path 的前提下，由 Wall.E 端自動 merge failover-era tasks。
 - **`wall-e/` 與 `shared/scripts/` 落地**：補齊 Wall.E 健康檢查腳本與跨節點共用工具（目前 TBD）。
@@ -468,3 +468,4 @@ ssh ken@192.168.81.195 'systemctl --user is-active hermes-gateway.service'
 | 2026-06-02 | v0.1.3 | Lai.Fu hostname 更名：openclaw → Lai-Fu-Hermes（Linux hostname 不支援底線）。 | Ken + Claude |
 | 2026-06-02 | v0.1.4 | 新增 ROADMAP.md 連結（架構演進路線、備援光譜、多活決策）；TOC 與 Future Work 加指向。 | Ken + Claude |
 | 2026-06-04 | v0.1.5 | 修正 Lai.Fu SSH port 22→11322（harden commit）；修正 Yggdrasill Tailscale IP（未加入→100.93.159.12）；Yggdrasill hermes gateway 標記已安裝（v0.15.1，T08 完成）。 | Ken + Claude（Sonnet 4.6） |
+| 2026-06-04 | v0.1.6 | T14 第二監測者：新增 yggdrasill/laifu-monitor.sh + hermes-laifu-monitor.timer（2min 探測，3次失敗告警，不自動接管）；Known Limitations 更新；Future Work 標記已實作。 | Ken + Claude（Sonnet 4.6） |
