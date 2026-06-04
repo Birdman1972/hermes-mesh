@@ -126,9 +126,9 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | T12 | 端到端 failover 演練（verification matrix） | ✅ DONE | T08,T09,T10,T11 | P1 |
 | T13 | handback 對稱 debounce（連續 3 次成功才交還） | ✅ DONE | T12 | P1 |
 | T18 | lease gate：persistent lockfile + Yggdrasill reboot check + SSH timeout | ✅ DONE | T12 | P1 |
-| T14 | 第二監測者：Yggdrasill 也監測 Lai.Fu | 🔲 TODO | T08,T10 | P2 |
+| T14 | 第二監測者：Yggdrasill 也監測 Lai.Fu | ✅ DONE | T08,T10 | P2 |
 | T15 | Approach D：Lai.Fu 透過 SSH kanban 委派任務給 Wall.E | 🔲 TODO | T06 | P2 |
-| T16 | 補齊 `wall-e/` 內容（健康檢查腳本 + failover-tasks/） | 🔲 TODO | — | P2 |
+| T16 | 補齊 `wall-e/` 內容（健康檢查腳本 + failover-tasks/） | ✅ DONE | — | P2 |
 | T17 | 補齊 `shared/scripts/` 跨節點共用工具 | 🔲 TODO | — | P3 |
 
 ---
@@ -225,12 +225,12 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 - **依賴：** T12
 - **Notes：** commit 7c7ce0e。Lai.Fu 上透過 `git stash → pull → chmod +x → stash drop` 部署（mode-only diff 問題）。
 
-### T14 — 第二監測者：Yggdrasill 也監測 Lai.Fu · 🔲 TODO
+### T14 — 第二監測者：Yggdrasill 也監測 Lai.Fu · ✅ DONE
 - **描述：** 消除單一守門人單點失效（Lai.Fu 掛了沒人觸發 failover）。讓 Yggdrasill 輕量探測 Lai.Fu（甚至互備探測 Wall.E）。
 - **DoD：**
-  - Yggdrasill 有一支輕量探測（不跑 agent loop）監測 Lai.Fu 存活。
-  - Lai.Fu 掛掉時，Yggdrasill 能 alert Ken（至少通知，不一定自動接管）。
-  - 機制與職責邊界寫入 README。
+  - Yggdrasill 有一支輕量探測（不跑 agent loop）監測 Lai.Fu 存活。✅ `yggdrasill/laifu-monitor.sh`（L1: nc TCP + L2: SSH，每 2 分鐘）
+  - Lai.Fu 掛掉時，Yggdrasill 能 alert Ken（至少通知，不一定自動接管）。✅ 連續 3 次失敗送 Telegram WARNING，不自動接管（防 split-brain）
+  - 機制與職責邊界寫入 README。✅ README v0.1.6「第二監測者」段落（commit 3e130b2）
 - **依賴：** T08, T10
 - **Notes：** 見 README「Future Work — 第二監測者」。注意避免兩個監測者同時觸發造成 split-brain，需設計仲裁或角色分工。
 
@@ -243,12 +243,12 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 - **依賴：** T06
 - **Notes：** ⚠️ 需嚴守 R5（Pi 2 不進 write path——這裡寫的是 Wall.E 的 DB，可接受）。`data/signals/` 目錄已存在但未被任何腳本使用，可能是為此預留的 signal 通道——**設計前先釐清 `data/signals/` 用途**並決定是否採用。此任務尚屬探索性，實作前建議 dual-brain 審查。
 
-### T16 — 補齊 `wall-e/` 內容（健康檢查腳本 + failover-tasks/） · 🔲 TODO
+### T16 — 補齊 `wall-e/` 內容（健康檢查腳本 + failover-tasks/） · ✅ DONE
 - **描述：** `wall-e/` 目前為空。補上主腦端健康檢查腳本，並確立 `~/failover-tasks/` 接收 handback dump 的約定。
 - **DoD：**
-  - `wall-e/` 含可在 Wall.E 跑的健康自檢腳本（gateway / kanban / agent loop 狀態）。
-  - Wall.E 上 `~/failover-tasks/` 存在（handback 的 scp 目標，見 README Handback 步驟 4）。
-  - README「檔案結構」把 `wall-e/ (TBD)` 更新為實際內容。
+  - `wall-e/` 含可在 Wall.E 跑的健康自檢腳本（gateway / kanban / agent loop 狀態）。✅ `wall-e/health-check.sh`（gateway/kanban.db/failover-tasks 三項）；Wall.E 實測 3 OK, 0 FAIL
+  - Wall.E 上 `~/failover-tasks/` 存在（handback 的 scp 目標，見 README Handback 步驟 4）。✅ 已存在（含 T18 handback dump）
+  - README「檔案結構」把 `wall-e/ (TBD)` 更新為實際內容。✅ wall-e/ 與 yggdrasill/ 均展開實際檔案
 - **依賴：** 無
 - **Notes：** 見 README「Future Work — wall-e/ 與 shared/scripts/ 落地」。
 
@@ -308,8 +308,8 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 
 ### Next recommended action（下一個 session 從這裡開始）
 
-1. **T14**：第二監測者（Yggdrasill 監測 Lai.Fu）
-2. **T16/T17**：wall-e/ + shared/scripts/ 落地補齊
+1. **T17**：補齊 `shared/scripts/` 跨節點共用工具
+2. **T15**：Approach D — Lai.Fu SSH kanban 委派（探索性，建議 dual-brain 先）
 3. **ROADMAP §8**：備援目標等級（冷/熱/查清楚後再定）、目錄重組（待 Ken 拍板）
 
 ### 接手前必讀
@@ -336,3 +336,5 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | 2026-06-04 | v1.8 | T12 標記 DONE（全 10 項 PASS，含 DoD evidence）；修正 Lai.Fu SSH port 22→11322；修正 Yggdrasill Tailscale IP；Q2 更新；§5 Topology State 恢復正常；Next action 更新為 T13。 | Ken + Claude（Sonnet 4.6） |
 | 2026-06-04 | v1.9 | T13 標記 DONE（commit a01acce，DoD evidence 補齊）；Next action 更新為 §8 討論 + T14。 | Ken + Claude（Sonnet 4.6） |
 | 2026-06-04 | v2.0 | T18 正式加入並標記 DONE（commit 7c7ce0e）；DoD evidence 補齊（reboot PERSIST_OK + watchdog WARNING trace）；lockfile 路徑更新至 persistent；Next action 更新為 T14。 | Ken + Claude（Sonnet 4.6） |
+| 2026-06-05 | v2.1 | T14 標記 DONE（commit 3e130b2，DoD evidence 補齊）；Next action 更新為 T16。 | Ken + Claude（Sonnet 4.6） |
+| 2026-06-05 | v2.2 | T16 標記 DONE（wall-e/health-check.sh + install.sh，Wall.E 實測 3 OK）；README 檔案結構更新；Next action 更新為 T17。 | Ken + Claude（Sonnet 4.6） |

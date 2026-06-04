@@ -233,8 +233,13 @@ hermes-mesh/
 │   ├── install.sh              # 部署到 Lai.Fu（複製 unit + 啟用 timer）
 │   ├── hermes-watchdog.service # oneshot service，ExecStart=watchdog.sh
 │   └── hermes-watchdog.timer   # OnBootSec=60, OnUnitActiveSec=30
-├── wall-e/                     # Wall.E 設定與健康檢查（TBD）
+├── wall-e/
+│   ├── health-check.sh         # 主腦健康自檢（gateway / kanban / failover-tasks）
+│   └── install.sh              # 部署到 Wall.E（建立 ~/failover-tasks/ + 執行健康檢查）
 ├── yggdrasill/
+│   ├── laifu-monitor.sh        # 探測 Lai.Fu（L1: nc TCP + L2: SSH，3次失敗告警）
+│   ├── hermes-laifu-monitor.service
+│   ├── hermes-laifu-monitor.timer  # OnUnitActiveSec=2min
 │   └── standby.md              # 備援腦啟/停與 standby 模式說明
 └── shared/scripts/             # 跨節點共用工具（TBD）
 ```
@@ -469,3 +474,4 @@ ssh ken@192.168.81.195 'systemctl --user is-active hermes-gateway.service'
 | 2026-06-02 | v0.1.4 | 新增 ROADMAP.md 連結（架構演進路線、備援光譜、多活決策）；TOC 與 Future Work 加指向。 | Ken + Claude |
 | 2026-06-04 | v0.1.5 | 修正 Lai.Fu SSH port 22→11322（harden commit）；修正 Yggdrasill Tailscale IP（未加入→100.93.159.12）；Yggdrasill hermes gateway 標記已安裝（v0.15.1，T08 完成）。 | Ken + Claude（Sonnet 4.6） |
 | 2026-06-04 | v0.1.6 | T14 第二監測者：新增 yggdrasill/laifu-monitor.sh + hermes-laifu-monitor.timer（2min 探測，3次失敗告警，不自動接管）；Known Limitations 更新；Future Work 標記已實作。 | Ken + Claude（Sonnet 4.6） |
+| 2026-06-05 | v0.1.7 | T16 wall-e/ 落地：新增 wall-e/health-check.sh + install.sh（gateway/kanban/failover-tasks 三項自檢，Wall.E 實測 3 OK）；檔案結構更新（wall-e/ + yggdrasill/ 均展開）。 | Ken + Claude（Sonnet 4.6） |
