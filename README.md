@@ -241,7 +241,8 @@ hermes-mesh/
 │   ├── hermes-laifu-monitor.service
 │   ├── hermes-laifu-monitor.timer  # OnUnitActiveSec=2min
 │   └── standby.md              # 備援腦啟/停與 standby 模式說明
-└── shared/scripts/             # 跨節點共用工具（TBD）
+└── shared/scripts/
+    └── failover-drill.sh       # 全節點連通 + failover/handback 流程驗證（dry-run 預設 / --live 實際演練）
 ```
 
 ### 關鍵腳本變數速查（重建用）
@@ -357,9 +358,9 @@ failover 時由 Lai.Fu 自動 `start`；handback 時自動 `stop`。亦可手動
 - ✅ **第二監測者 / watchdog 互備**（已實作 v0.1.6）：Yggdrasill 每 2 分鐘探測 Lai.Fu（nc TCP + SSH 雙層），連續 3 次失敗發 Telegram 告警，不自動接管（防 split-brain）。部署：`systemctl --user enable --now hermes-laifu-monitor.timer`（在 Yggdrasill 執行）。
 - **半透明 failover**：研究共用 bot 身分或前置代理 (proxy) 讓使用者無感切換，同時不破壞 token 分離的 split-brain 防護。
 - **自動任務調和**：在不讓 Pi 2 進入 write path 的前提下，由 Wall.E 端自動 merge failover-era tasks。
-- **`wall-e/` 與 `shared/scripts/` 落地**：補齊 Wall.E 健康檢查腳本與跨節點共用工具（目前 TBD）。
+- ✅ **`wall-e/` 與 `shared/scripts/` 落地**（已實作 v0.1.7）：Wall.E 健康檢查腳本（`wall-e/health-check.sh`）與跨節點 failover drill（`shared/scripts/failover-drill.sh`）。
 - **可觀測性**：集中收集三節點的 watchdog/gateway log 與 failover 事件指標（如 failover 次數、MTTR）。
-- **演練機制 (failover drill)**：提供可重複、安全的 failover 演練腳本，定期驗證整套流程可用。
+- ✅ **演練機制 (failover drill)**（已實作 v0.1.7）：`shared/scripts/failover-drill.sh`；dry-run 驗證 11 項前置條件，`--live` 執行完整 failover→handback 並計時等待。
 
 ---
 

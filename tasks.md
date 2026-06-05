@@ -129,7 +129,7 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | T14 | 第二監測者：Yggdrasill 也監測 Lai.Fu | ✅ DONE | T08,T10 | P2 |
 | T15 | Approach D：Lai.Fu 透過 SSH kanban 委派任務給 Wall.E | 🔲 TODO | T06 | P2 |
 | T16 | 補齊 `wall-e/` 內容（健康檢查腳本 + failover-tasks/） | ✅ DONE | — | P2 |
-| T17 | 補齊 `shared/scripts/` 跨節點共用工具 | 🔲 TODO | — | P3 |
+| T17 | 補齊 `shared/scripts/` 跨節點共用工具 | ✅ DONE | — | P3 |
 
 ---
 
@@ -252,13 +252,16 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 - **依賴：** 無
 - **Notes：** 見 README「Future Work — wall-e/ 與 shared/scripts/ 落地」。
 
-### T17 — 補齊 `shared/scripts/` 跨節點共用工具 · 🔲 TODO
+### T17 — 補齊 `shared/scripts/` 跨節點共用工具 · ✅ DONE
 - **描述：** `shared/scripts/` 目前為空。放跨節點共用工具（如統一的健康探測函式、failover 演練腳本、log 收集）。
 - **DoD：**
-  - `shared/scripts/` 至少含一支被其他節點實際引用的共用工具。
-  - README「檔案結構」更新 `shared/scripts/ (TBD)` 為實際內容。
+  - `shared/scripts/` 至少含一支被其他節點實際引用的共用工具。✅（`failover-drill.sh`，2026-06-05）
+  - README「檔案結構」更新 `shared/scripts/ (TBD)` 為實際內容。✅（v0.1.7）
 - **依賴：** 無（T12 的演練腳本可落腳於此）
-- **Notes：** 候選：failover drill 腳本（關聯 T12）、集中式 log/指標收集（README「Future Work — 可觀測性」）。
+- **DoD evidence（2026-06-05）：**
+  - `shared/scripts/failover-drill.sh` 建立，11 項 dry-run 前置確認 + `--live` 完整演練流程
+  - README 檔案結構與 Future Work 兩處同步更新
+- **Notes：** failover drill 腳本（關聯 T12）；dry-run 預設（僅驗連通性），`--live` 執行實際 failover→handback 計時等待。
 
 ---
 
@@ -308,8 +311,7 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 
 ### Next recommended action（下一個 session 從這裡開始）
 
-1. **T17**：補齊 `shared/scripts/` 跨節點共用工具
-2. **T15**：Approach D — Lai.Fu SSH kanban 委派（探索性，建議 dual-brain 先）
+1. **T15**：Approach D — Lai.Fu SSH kanban 委派（探索性，建議 dual-brain 先）
 3. **ROADMAP §8**：備援目標等級（冷/熱/查清楚後再定）、目錄重組（待 Ken 拍板）
 
 ### 接手前必讀
@@ -338,3 +340,4 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | 2026-06-04 | v2.0 | T18 正式加入並標記 DONE（commit 7c7ce0e）；DoD evidence 補齊（reboot PERSIST_OK + watchdog WARNING trace）；lockfile 路徑更新至 persistent；Next action 更新為 T14。 | Ken + Claude（Sonnet 4.6） |
 | 2026-06-05 | v2.1 | T14 標記 DONE（commit 3e130b2，DoD evidence 補齊）；Next action 更新為 T16。 | Ken + Claude（Sonnet 4.6） |
 | 2026-06-05 | v2.2 | T16 標記 DONE（wall-e/health-check.sh + install.sh，Wall.E 實測 3 OK）；README 檔案結構更新；Next action 更新為 T17。 | Ken + Claude（Sonnet 4.6） |
+| 2026-06-05 | v2.3 | T17 標記 DONE（shared/scripts/failover-drill.sh，11 項 dry-run + --live 演練）；README v0.1.7 更新；Next action 更新為 T15。 | Ken + Claude（Sonnet 4.6） |
