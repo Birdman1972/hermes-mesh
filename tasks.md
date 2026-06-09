@@ -10,8 +10,8 @@
 
 | 項目 | 值 |
 |---|---|
-| tasks.md 版本 | **v2.0** |
-| 最後更新 | 2026-06-04 |
+| tasks.md 版本 | **v2.4** |
+| 最後更新 | 2026-06-09 |
 | 對應 README 版本 | v0.1.3 |
 | 維護者 | Ken + AI 助手 |
 
@@ -73,6 +73,7 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | T05 | Lai.Fu 部署 watchdog timer 並驗證 | ✅ DONE |
 | T06 | 驗證 Lai.Fu → Wall.E SSH（L2 探測通路） | ✅ DONE |
 | T12 | 端到端 failover 演練（verification matrix） | ✅ DONE |
+| T19 | Lai.Fu hermes-agent mem0 記憶啟用 | ✅ DONE |
 
 ### T01 — 建立 hermes-mesh repo · ✅ DONE
 - **描述：** 建立 GitHub repo 與初始目錄結構。
@@ -263,6 +264,19 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
   - README 檔案結構與 Future Work 兩處同步更新
 - **Notes：** failover drill 腳本（關聯 T12）；dry-run 預設（僅驗連通性），`--live` 執行實際 failover→handback 計時等待。
 
+### T19 — Lai.Fu hermes-agent mem0 記憶啟用 · ✅ DONE
+- **描述：** 為 Lai.Fu 的 hermes-agent 啟用 Mem0 雲端記憶，讓 gateway 在對話中自動 prefetch 與 sync 記憶。
+- **DoD：**
+  - `~/.hermes/config.yaml` 中 `memory_enabled: true`。✅
+  - `mem0ai` + 相依套件（posthog、qdrant-client、grpcio）安裝於 venv。✅
+  - API 實測：`client.add()` 回傳 `status: PENDING`；`client.search()` 能回傳已存記憶。✅
+- **依賴：** 無
+- **DoD evidence（2026-06-09）：**
+  - pip cache 清除後成功安裝 grpcio（armv7l /tmp tmpfs 128M 不夠，需先 `pip cache purge`）
+  - 搜尋 `watchdog node` 回傳 `User uses a Raspberry Pi 2 as a watchdog node named Lai.Fu` ✅
+  - hermes-gateway restart 後 active ✅
+- **Notes：** MEM0_API_KEY 存於 `~/.hermes/.env`（R9 合規）。config 備份為 `~/.hermes/config.yaml.pre-mem0`。mem0 user_id=`laif-user`，agent_id=`laif`。
+
 ---
 
 ## 4. 已知阻塞與未決問題（BLOCKED / OPEN QUESTIONS）
@@ -292,6 +306,7 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | Lai.Fu lockfile (`~/.local/share/hermes-mesh/laifu-active`) | **GONE**（standby 正常） | 2026-06-04 |
 | Lai.Fu SSH port | **11322**（hardened，非 22） | 2026-06-04 |
 | Yggdrasill Tailscale IP | **100.93.159.12** | 2026-06-04 |
+| Lai.Fu mem0 memory | **enabled**（user_id=laif-user，agent_id=laif） | 2026-06-09 |
 
 ### Forbidden States（絕對不允許的狀態）
 
@@ -302,12 +317,10 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 
 ---
 
-### 上一個 session 摘要（2026-06-04）
-- T18 完成（lease gate）：lockfile 改 persistent 路徑 + Yggdrasill reboot check + SSH timeout（commit 7c7ce0e）。
-- T18 DoD 實機驗收：Lai.Fu reboot 後 lockfile PERSIST_OK；watchdog.sh WARNING + Telegram 告警正常觸發。
-- T13 完成：watchdog.sh + handback.sh 新增 SUCCESS_THRESHOLD=3 對稱 debounce（commit a01acce）。
-- 修正 Lai.Fu SSH port：22 → 11322；修正 Yggdrasill Tailscale IP → 100.93.159.12。
-- 系統狀態：Wall.E active、Yggdrasill inactive（standby）、fail count=0、lockfile GONE。
+### 上一個 session 摘要（2026-06-09）
+- T19 完成（mem0 記憶啟用）：安裝 mem0ai 依賴（posthog/qdrant-client/grpcio）、config 設 memory_enabled=true、API 實測 PASS。
+- 注意：Pi 2 /tmp 只有 128M (tmpfs)，裝 grpcio 前必須先 `pip cache purge` 清出空間。
+- hermes-gateway restart 後 active，mem0 雲端 API 正常連線。
 
 ### Next recommended action（下一個 session 從這裡開始）
 
@@ -341,3 +354,4 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | 2026-06-05 | v2.1 | T14 標記 DONE（commit 3e130b2，DoD evidence 補齊）；Next action 更新為 T16。 | Ken + Claude（Sonnet 4.6） |
 | 2026-06-05 | v2.2 | T16 標記 DONE（wall-e/health-check.sh + install.sh，Wall.E 實測 3 OK）；README 檔案結構更新；Next action 更新為 T17。 | Ken + Claude（Sonnet 4.6） |
 | 2026-06-05 | v2.3 | T17 標記 DONE（shared/scripts/failover-drill.sh，11 項 dry-run + --live 演練）；README v0.1.7 更新；Next action 更新為 T15。 | Ken + Claude（Sonnet 4.6） |
+| 2026-06-09 | v2.4 | T19 加入並標記 DONE（Lai.Fu mem0 啟用，API 實測 PASS）；Topology State 新增 mem0 列；session 摘要更新。 | Ken + Claude（Sonnet 4.6） |
