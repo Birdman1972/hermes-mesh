@@ -1,1 +1,5 @@
 data/signals/
+lai-fu/monitor.env
+lai-fu/.thresholds.lock
+lai-fu/threshold-history.log
+lai-fu/*.bak-*
