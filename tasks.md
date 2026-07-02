@@ -10,7 +10,7 @@
 
 | 項目 | 值 |
 |---|---|
-| tasks.md 版本 | **v1.8** |
+| tasks.md 版本 | **v2.0** |
 | 最後更新 | 2026-06-04 |
 | 對應 README 版本 | v0.1.3 |
 | 維護者 | Ken + AI 助手 |
@@ -125,10 +125,11 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | T11 | 確認/修正 Yggdrasill SSH port 與連線參數 | ✅ DONE | — | P0 |
 | T12 | 端到端 failover 演練（verification matrix） | ✅ DONE | T08,T09,T10,T11 | P1 |
 | T13 | handback 對稱 debounce（連續 3 次成功才交還） | ✅ DONE | T12 | P1 |
-| T14 | 第二監測者：Yggdrasill 也監測 Lai.Fu | 🔲 TODO | T08,T10 | P2 |
+| T18 | lease gate：persistent lockfile + Yggdrasill reboot check + SSH timeout | ✅ DONE | T12 | P1 |
+| T14 | 第二監測者：Yggdrasill 也監測 Lai.Fu | ✅ DONE | T08,T10 | P2 |
 | T15 | Approach D：Lai.Fu 透過 SSH kanban 委派任務給 Wall.E | 🔲 TODO | T06 | P2 |
-| T16 | 補齊 `wall-e/` 內容（健康檢查腳本 + failover-tasks/） | 🔲 TODO | — | P2 |
-| T17 | 補齊 `shared/scripts/` 跨節點共用工具 | 🔲 TODO | — | P3 |
+| T16 | 補齊 `wall-e/` 內容（健康檢查腳本 + failover-tasks/） | ✅ DONE | — | P2 |
+| T17 | 補齊 `shared/scripts/` 跨節點共用工具 | ✅ DONE | — | P3 |
 
 ---
 
@@ -211,12 +212,25 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 - **依賴：** T12
 - **Notes：** 實作：`/tmp/walle-success-count` 計數檔，`SUCCESS_THRESHOLD=3`，探測失敗時歸零；對稱於 `FAIL_THRESHOLD`。
 
-### T14 — 第二監測者：Yggdrasill 也監測 Lai.Fu · 🔲 TODO
+### T18 — lease gate：persistent lockfile + Yggdrasill reboot check + SSH timeout · ✅ DONE
+- **描述：** 三項強化：(1) lockfile 改存 persistent 路徑（重啟後保留）；(2) watchdog.sh 在 lockfile 存在時主動確認 Yggdrasill gateway 是否在線，否則告警；(3) SSH 指令加 `timeout 10` 防卡死。
+- **DoD：**
+  1. lockfile 路徑由 `/run/user/$(id-u)/laifu-active`（tmpfs）改為 `~/.local/share/hermes-mesh/laifu-active`（持久）。✅
+  2. Lai.Fu reboot 後 lockfile 仍存在。✅（2026-06-04 實機驗證：reboot → `ls -la` 確認 PERSIST_OK）
+  3. watchdog.sh 在 lockfile 存在時 SSH 確認 Yggdrasill gateway 狀態，inactive → `logger WARNING` + `hermes send telegram`。✅（2026-06-04 debug trace：WARNING logged + telegram 發出）
+  4. SSH 指令加 `timeout 10`，防 SSH 卡死導致 watchdog timer 積壓。✅（commit 7c7ce0e）
+- **DoD evidence（2026-06-04）：**
+  - reboot 後 `ls -la ~/.local/share/hermes-mesh/laifu-active` → `-rw-rw-r-- 1 ken ken 0 Jun 4 16:46` PERSIST_OK ✅
+  - `bash -x watchdog.sh` trace → `LOCK_FILE=/home/ken/.local/share/hermes-mesh/laifu-active` → `logger WARNING: lockfile exists but Yggdrasill gateway is not active` ✅
+- **依賴：** T12
+- **Notes：** commit 7c7ce0e。Lai.Fu 上透過 `git stash → pull → chmod +x → stash drop` 部署（mode-only diff 問題）。
+
+### T14 — 第二監測者：Yggdrasill 也監測 Lai.Fu · ✅ DONE
 - **描述：** 消除單一守門人單點失效（Lai.Fu 掛了沒人觸發 failover）。讓 Yggdrasill 輕量探測 Lai.Fu（甚至互備探測 Wall.E）。
 - **DoD：**
-  - Yggdrasill 有一支輕量探測（不跑 agent loop）監測 Lai.Fu 存活。
-  - Lai.Fu 掛掉時，Yggdrasill 能 alert Ken（至少通知，不一定自動接管）。
-  - 機制與職責邊界寫入 README。
+  - Yggdrasill 有一支輕量探測（不跑 agent loop）監測 Lai.Fu 存活。✅ `yggdrasill/laifu-monitor.sh`（L1: nc TCP + L2: SSH，每 2 分鐘）
+  - Lai.Fu 掛掉時，Yggdrasill 能 alert Ken（至少通知，不一定自動接管）。✅ 連續 3 次失敗送 Telegram WARNING，不自動接管（防 split-brain）
+  - 機制與職責邊界寫入 README。✅ README v0.1.6「第二監測者」段落（commit 3e130b2）
 - **依賴：** T08, T10
 - **Notes：** 見 README「Future Work — 第二監測者」。注意避免兩個監測者同時觸發造成 split-brain，需設計仲裁或角色分工。
 
@@ -229,22 +243,25 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 - **依賴：** T06
 - **Notes：** ⚠️ 需嚴守 R5（Pi 2 不進 write path——這裡寫的是 Wall.E 的 DB，可接受）。`data/signals/` 目錄已存在但未被任何腳本使用，可能是為此預留的 signal 通道——**設計前先釐清 `data/signals/` 用途**並決定是否採用。此任務尚屬探索性，實作前建議 dual-brain 審查。
 
-### T16 — 補齊 `wall-e/` 內容（健康檢查腳本 + failover-tasks/） · 🔲 TODO
+### T16 — 補齊 `wall-e/` 內容（健康檢查腳本 + failover-tasks/） · ✅ DONE
 - **描述：** `wall-e/` 目前為空。補上主腦端健康檢查腳本，並確立 `~/failover-tasks/` 接收 handback dump 的約定。
 - **DoD：**
-  - `wall-e/` 含可在 Wall.E 跑的健康自檢腳本（gateway / kanban / agent loop 狀態）。
-  - Wall.E 上 `~/failover-tasks/` 存在（handback 的 scp 目標，見 README Handback 步驟 4）。
-  - README「檔案結構」把 `wall-e/ (TBD)` 更新為實際內容。
+  - `wall-e/` 含可在 Wall.E 跑的健康自檢腳本（gateway / kanban / agent loop 狀態）。✅ `wall-e/health-check.sh`（gateway/kanban.db/failover-tasks 三項）；Wall.E 實測 3 OK, 0 FAIL
+  - Wall.E 上 `~/failover-tasks/` 存在（handback 的 scp 目標，見 README Handback 步驟 4）。✅ 已存在（含 T18 handback dump）
+  - README「檔案結構」把 `wall-e/ (TBD)` 更新為實際內容。✅ wall-e/ 與 yggdrasill/ 均展開實際檔案
 - **依賴：** 無
 - **Notes：** 見 README「Future Work — wall-e/ 與 shared/scripts/ 落地」。
 
-### T17 — 補齊 `shared/scripts/` 跨節點共用工具 · 🔲 TODO
+### T17 — 補齊 `shared/scripts/` 跨節點共用工具 · ✅ DONE
 - **描述：** `shared/scripts/` 目前為空。放跨節點共用工具（如統一的健康探測函式、failover 演練腳本、log 收集）。
 - **DoD：**
-  - `shared/scripts/` 至少含一支被其他節點實際引用的共用工具。
-  - README「檔案結構」更新 `shared/scripts/ (TBD)` 為實際內容。
+  - `shared/scripts/` 至少含一支被其他節點實際引用的共用工具。✅（`failover-drill.sh`，2026-06-05）
+  - README「檔案結構」更新 `shared/scripts/ (TBD)` 為實際內容。✅（v0.1.7）
 - **依賴：** 無（T12 的演練腳本可落腳於此）
-- **Notes：** 候選：failover drill 腳本（關聯 T12）、集中式 log/指標收集（README「Future Work — 可觀測性」）。
+- **DoD evidence（2026-06-05）：**
+  - `shared/scripts/failover-drill.sh` 建立，11 項 dry-run 前置確認 + `--live` 完整演練流程
+  - README 檔案結構與 Future Work 兩處同步更新
+- **Notes：** failover drill 腳本（關聯 T12）；dry-run 預設（僅驗連通性），`--live` 執行實際 failover→handback 計時等待。
 
 ---
 
@@ -272,7 +289,7 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | Yggdrasill hermes-gateway.service | 🟢 **inactive**（standby 正常） | 2026-06-04 |
 | Lai.Fu → Yggdrasill SSH (port 19522) | **key auth OK** | 2026-06-02 |
 | Lai.Fu fail count (`/tmp/walle-fail-count`) | **0** | 2026-06-04 |
-| Lai.Fu lockfile (`/run/user/*/laifu-active`) | **GONE**（handback 完成） | 2026-06-04 |
+| Lai.Fu lockfile (`~/.local/share/hermes-mesh/laifu-active`) | **GONE**（standby 正常） | 2026-06-04 |
 | Lai.Fu SSH port | **11322**（hardened，非 22） | 2026-06-04 |
 | Yggdrasill Tailscale IP | **100.93.159.12** | 2026-06-04 |
 
@@ -286,17 +303,16 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 ---
 
 ### 上一個 session 摘要（2026-06-04）
+- T18 完成（lease gate）：lockfile 改 persistent 路徑 + Yggdrasill reboot check + SSH timeout（commit 7c7ce0e）。
+- T18 DoD 實機驗收：Lai.Fu reboot 後 lockfile PERSIST_OK；watchdog.sh WARNING + Telegram 告警正常觸發。
 - T13 完成：watchdog.sh + handback.sh 新增 SUCCESS_THRESHOLD=3 對稱 debounce（commit a01acce）。
-- T12 驗收完成（全 10 項 PASS）：handback.sh 在 Lai.Fu 執行，SQL dump 送到 Wall.E，Telegram 通知送出。
-- 修正 Lai.Fu SSH port：22 → 11322（harden commit 後遺漏更新）。
-- 修正 Yggdrasill Tailscale IP：誤記「未加入 Tailscale」→ 實際 100.93.159.12。
-- 系統恢復正常：Wall.E active、Yggdrasill inactive、fail count=0、lockfile GONE。
+- 修正 Lai.Fu SSH port：22 → 11322；修正 Yggdrasill Tailscale IP → 100.93.159.12。
+- 系統狀態：Wall.E active、Yggdrasill inactive（standby）、fail count=0、lockfile GONE。
 
 ### Next recommended action（下一個 session 從這裡開始）
 
-1. **ROADMAP §8 開放決策**：lease gate 優先順序（T18 排 Phase 1 vs 暫緩）、備援目標等級（冷/熱/查清楚後再定）、目錄重組（待 Ken 拍板）
-2. **T14**：第二監測者（Yggdrasill 監測 Lai.Fu）
-3. **T16/T17**：wall-e/ + shared/scripts/ 落地補齊
+1. **T15**：Approach D — Lai.Fu SSH kanban 委派（探索性，建議 dual-brain 先）
+3. **ROADMAP §8**：備援目標等級（冷/熱/查清楚後再定）、目錄重組（待 Ken 拍板）
 
 ### 接手前必讀
 - 本檔案 §0（30 秒簡報）+ §1（通用規則 R1–R9）。
@@ -321,3 +337,7 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | 2026-06-02 | v1.7 | 修正 hermes send -t 語法 bug；更新 Topology State（failover 異常狀態）；Yggdrasill Tailscale IP=100.93.159.12 發現（T11 誤記）；Next action 更新為明天 handback 流程。 | Ken + Claude |
 | 2026-06-04 | v1.8 | T12 標記 DONE（全 10 項 PASS，含 DoD evidence）；修正 Lai.Fu SSH port 22→11322；修正 Yggdrasill Tailscale IP；Q2 更新；§5 Topology State 恢復正常；Next action 更新為 T13。 | Ken + Claude（Sonnet 4.6） |
 | 2026-06-04 | v1.9 | T13 標記 DONE（commit a01acce，DoD evidence 補齊）；Next action 更新為 §8 討論 + T14。 | Ken + Claude（Sonnet 4.6） |
+| 2026-06-04 | v2.0 | T18 正式加入並標記 DONE（commit 7c7ce0e）；DoD evidence 補齊（reboot PERSIST_OK + watchdog WARNING trace）；lockfile 路徑更新至 persistent；Next action 更新為 T14。 | Ken + Claude（Sonnet 4.6） |
+| 2026-06-05 | v2.1 | T14 標記 DONE（commit 3e130b2，DoD evidence 補齊）；Next action 更新為 T16。 | Ken + Claude（Sonnet 4.6） |
+| 2026-06-05 | v2.2 | T16 標記 DONE（wall-e/health-check.sh + install.sh，Wall.E 實測 3 OK）；README 檔案結構更新；Next action 更新為 T17。 | Ken + Claude（Sonnet 4.6） |
+| 2026-06-05 | v2.3 | T17 標記 DONE（shared/scripts/failover-drill.sh，11 項 dry-run + --live 演練）；README v0.1.7 更新；Next action 更新為 T15。 | Ken + Claude（Sonnet 4.6） |
