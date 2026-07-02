@@ -1,0 +1,12 @@
+[Unit]
+Description=Hermes Mesh Git Auto-Sync Timer
+Requires=hermes-mesh-sync.service
+
+[Timer]
+OnBootSec=120
+OnUnitActiveSec=900
+AccuracySec=30
+Unit=hermes-mesh-sync.service
+
+[Install]
+WantedBy=timers.target

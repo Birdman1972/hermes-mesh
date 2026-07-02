@@ -1,0 +1,8 @@
+[Unit]
+Description=Hermes Mesh safe git auto-sync, never auto-commits or auto-merges
+
+[Service]
+Type=oneshot
+ExecStart=%h/hermes-mesh/shared/scripts/git-auto-sync.sh %h/hermes-mesh
+StandardOutput=journal
+StandardError=journal
