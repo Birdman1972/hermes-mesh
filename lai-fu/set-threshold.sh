@@ -5,10 +5,10 @@ BASE="$HOME/hermes-mesh/lai-fu"
 CONF="$BASE/thresholds.conf"; LOG="$BASE/threshold-history.log"
 LOCK="$BASE/.thresholds.lock"; ENV_FILE="$BASE/monitor.env"
 # 安全邊界：允許的 key 與範圍（硬寫於此，外部檔無法放寬）
-declare -A MIN=(  [cpu_temp_max]=40  [disk_usage_max]=50 [room_temp_max]=0  )
-declare -A MAX=(  [cpu_temp_max]=90  [disk_usage_max]=95 [room_temp_max]=60 )
-declare -A DESC=( [cpu_temp_max]="CPU 溫度告警上限 (°C)" [disk_usage_max]="磁碟使用率告警上限 (%)" [room_temp_max]="DHT22 室溫告警上限 (°C)" )
-ORDER=(cpu_temp_max disk_usage_max room_temp_max)
+declare -A MIN=(  [cpu_temp_max]=40  [disk_usage_max]=50 [room_temp_max]=0  [hermes_mem_pct_max]=50 )
+declare -A MAX=(  [cpu_temp_max]=90  [disk_usage_max]=95 [room_temp_max]=60 [hermes_mem_pct_max]=98 )
+declare -A DESC=( [cpu_temp_max]="CPU 溫度告警上限 (°C)" [disk_usage_max]="磁碟使用率告警上限 (%)" [room_temp_max]="DHT22 室溫告警上限 (°C)" [hermes_mem_pct_max]="hermes-gateway 記憶體使用率告警上限 (% of cgroup MemoryMax)" )
+ORDER=(cpu_temp_max disk_usage_max room_temp_max hermes_mem_pct_max)
 die() { printf 'ERROR: %s\n' "$1" >&2; exit 1; }
 get_current() { grep -E "^$1=" "$CONF" 2>/dev/null | tail -n1 | cut -d= -f2- || true; }
 read_env() {

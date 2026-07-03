@@ -23,7 +23,7 @@ send_alert() {
   curl -s --max-time 15 -d chat_id="$TG_CHAT_ID" --data-urlencode text="$msg" "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage" >/dev/null || log "推播失敗：$msg"
 }
 gt() { awk -v a="$1" -v b="$2" 'BEGIN{exit !(a>b)}'; }
-CPU_MAX=$(read_threshold cpu_temp_max 75); DISK_MAX=$(read_threshold disk_usage_max 85); ROOM_MAX=$(read_threshold room_temp_max 28)
+CPU_MAX=$(read_threshold cpu_temp_max 75); DISK_MAX=$(read_threshold disk_usage_max 85); ROOM_MAX=$(read_threshold room_temp_max 28); HERMES_MEM_MAX=$(read_threshold hermes_mem_pct_max 85)
 alerts=()
 if [[ -r /sys/class/thermal/thermal_zone0/temp ]]; then
   m=$(cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null)
@@ -35,5 +35,11 @@ if room_line=$("$SENSOR_READ" dht22 2>/dev/null); then
   room_c=$(printf '%s' "$room_line" | awk '{print $1}')
   if [[ "$room_c" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then gt "$room_c" "$ROOM_MAX" && alerts+=("🏠 室溫 ${room_c}°C 超過 ${ROOM_MAX}°C"); else log "DHT22 讀值非法：'$room_line'"; fi
 else log "DHT22 讀取失敗，本輪略過室溫檢查"; fi
+mem_cur=$(systemctl --user show hermes-gateway.service -p MemoryCurrent --value 2>/dev/null || true)
+mem_max=$(systemctl --user show hermes-gateway.service -p MemoryMax --value 2>/dev/null || true)
+if [[ "$mem_cur" =~ ^[0-9]+$ && "$mem_max" =~ ^[0-9]+$ && "$mem_max" -gt 0 ]]; then
+  mem_pct=$(awk -v c="$mem_cur" -v m="$mem_max" 'BEGIN{printf "%d", (c*100)/m}')
+  gt "$mem_pct" "$HERMES_MEM_MAX" && alerts+=("🧠 hermes-gateway 記憶體使用率 ${mem_pct}% 超過 ${HERMES_MEM_MAX}%")
+fi
 if ((${#alerts[@]})); then send_alert "⚠️ Lai.Fu 告警：$(printf '%s；' "${alerts[@]}")"; fi
 exit 0
