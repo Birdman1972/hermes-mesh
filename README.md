@@ -163,7 +163,7 @@
 | DOWN 門檻 | 連續 **3 次**失敗 | `watchdog.sh` → `FAIL_THRESHOLD=3` |
 | 實際 debounce | 約 **90s**（3 × 30s） | 設計刻意大於 Pi 2 硬體 watchdog 60s |
 | 失敗計數檔 | `/tmp/walle-fail-count` | 健康時歸零 |
-| Lockfile | `/run/user/$(id -u)/laifu-active` | 防止重複觸發 |
+| Lockfile | `$HOME/.local/share/hermes-mesh/laifu-active` | 防止重複觸發（持久路徑，非 tmpfs，見 decision_t18_no_heartbeat） |
 
 ### 雙層健康探測
 
@@ -178,7 +178,7 @@
 
 連續 3 次失敗且 lockfile 不存在時執行：
 
-1. `touch` lockfile（`/run/user/$(id -u)/laifu-active`）— 上鎖，防止重複觸發
+1. `touch` lockfile（`$HOME/.local/share/hermes-mesh/laifu-active`）— 上鎖，防止重複觸發
 2. `logger` 記錄 `FAILOVER ACTIVATED`
 3. 透過 **Lai.Fu 的 Telegram bot** 通知 Ken：
    `⚠️ Wall.E unreachable — Lai.Fu 監測觸發備援流程，正在喚醒 Yggdrasill。`
@@ -215,7 +215,7 @@
 |---|---|
 | **分離 bot token** | 每節點各自的 Telegram/Discord token，不存在 token 爭用，兩腦不會同時用同一身分回覆 |
 | **本地 SQLite per node** | 每節點本地 `kanban.db`，**永不共享**（不放網路 FS） |
-| **Lockfile** | `/run/user/$(id -u)/laifu-active` 確保 failover 只觸發一次，恢復才解鎖 |
+| **Lockfile** | `$HOME/.local/share/hermes-mesh/laifu-active` 確保 failover 只觸發一次，恢復才解鎖 |
 | **90s debounce** | 連續 3 次（~90s）才宣告 down，刻意大於 Pi 2 硬體 watchdog (60s) 與 `Restart=always` 反彈時間，避免暫時抖動誤判 |
 | **手動 reconciliation** | 任務合併由 Wall.E 主導，Pi 2 不參與寫入 |
 
@@ -254,7 +254,7 @@ WALLE_SSH_PORT="16622"
 WALLE_USER="ken"
 FAIL_THRESHOLD=3
 COUNTER_FILE="/tmp/walle-fail-count"
-LOCK_FILE="/run/user/$(id -u)/laifu-active"
+LOCK_FILE="$HOME/.local/share/hermes-mesh/laifu-active"
 ```
 
 `lai-fu/activate-failover.sh` / `handback.sh`：
@@ -404,7 +404,7 @@ cd ~/hermes-mesh/lai-fu
 ./handback.sh
 
 # 驗證恢復
-ls /run/user/$(id -u)/laifu-active 2>/dev/null || echo "lockfile removed OK"
+ls "$HOME/.local/share/hermes-mesh/laifu-active" 2>/dev/null || echo "lockfile removed OK"
 ssh ken@192.168.81.195 'systemctl --user is-active hermes-gateway.service'
 # 預期：inactive
 ```

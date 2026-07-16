@@ -20,7 +20,7 @@ timeout 10 ssh -o ConnectTimeout=5 -o BatchMode=yes -p "${YGGDRASILL_SSH_PORT}" 
 
 if timeout 10 ssh -o ConnectTimeout=5 -o BatchMode=yes -p "${YGGDRASILL_SSH_PORT}" \
     "${YGGDRASILL_USER}@${YGGDRASILL_HOST}" \
-    'sqlite3 ~/.hermes/kanban/kanban.db .dump 2>/dev/null || echo ""' > "$EXPORT_FILE" 2>/dev/null; then
+    'sqlite3 ~/.hermes/kanban.db .dump 2>/dev/null || echo ""' > "$EXPORT_FILE" 2>/dev/null; then
     scp -P "$WALLE_SSH_PORT" -o BatchMode=yes \
         "$EXPORT_FILE" "${WALLE_USER}@${WALLE_HOST}:~/failover-tasks/" 2>/dev/null || true
 else

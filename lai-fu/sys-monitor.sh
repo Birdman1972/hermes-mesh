@@ -31,7 +31,7 @@ if [[ -r /sys/class/thermal/thermal_zone0/temp ]]; then
 fi
 disk_pct=$(df --output=pcent / 2>/dev/null | tail -n1 | tr -dc '0-9')
 [[ "$disk_pct" =~ ^[0-9]+$ ]] && gt "$disk_pct" "$DISK_MAX" && alerts+=("💾 磁碟使用率 ${disk_pct}% 超過 ${DISK_MAX}%")
-if room_line=$("$SENSOR_READ" dht22 2>/dev/null); then
+if room_line=$(timeout 10 "$SENSOR_READ" dht22 2>/dev/null); then
   room_c=$(printf '%s' "$room_line" | awk '{print $1}')
   if [[ "$room_c" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then gt "$room_c" "$ROOM_MAX" && alerts+=("🏠 室溫 ${room_c}°C 超過 ${ROOM_MAX}°C"); else log "DHT22 讀值非法：'$room_line'"; fi
 else log "DHT22 讀取失敗，本輪略過室溫檢查"; fi
@@ -42,4 +42,6 @@ if [[ "$mem_cur" =~ ^[0-9]+$ && "$mem_max" =~ ^[0-9]+$ && "$mem_max" -gt 0 ]]; t
   gt "$mem_pct" "$HERMES_MEM_MAX" && alerts+=("🧠 hermes-gateway 記憶體使用率 ${mem_pct}% 超過 ${HERMES_MEM_MAX}%")
 fi
 if ((${#alerts[@]})); then send_alert "⚠️ Lai.Fu 告警：$(printf '%s；' "${alerts[@]}")"; fi
+mkdir -p "$HOME/.local/share/hermes-mesh"
+touch "$HOME/.local/share/hermes-mesh/sys-monitor-alive"
 exit 0

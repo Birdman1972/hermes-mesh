@@ -27,4 +27,4 @@ cmd="$(lookup "$sensor")" || die "未登錄的感測器：'$sensor'（用 --list
 read -ra argv <<< "$cmd"
 [[ ${#argv[@]} -ge 1 ]] || die "登錄指令為空：$sensor"
 [[ "${argv[0]}" = /* ]] || die "登錄指令須為絕對路徑：${argv[0]}"
-exec "${argv[@]}"
+exec timeout 10 "${argv[@]}"

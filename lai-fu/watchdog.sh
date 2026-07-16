@@ -13,8 +13,27 @@ LOCK_FILE="$HOME/.local/share/hermes-mesh/laifu-active"
 YGGDRASILL_HOST="192.168.81.195"
 YGGDRASILL_SSH_PORT="19522"
 YGGDRASILL_USER="ken"
+SYS_MONITOR_ALIVE_FILE="$HOME/.local/share/hermes-mesh/sys-monitor-alive"
+SYS_MONITOR_STALE_MARKER="/tmp/sys-monitor-stale-alerted"
+SYS_MONITOR_STALE_SEC=900
 
 mkdir -p "$HOME/.local/share/hermes-mesh"
+
+if [ -f "$SYS_MONITOR_ALIVE_FILE" ]; then
+    alive_mtime=$(stat -c %Y "$SYS_MONITOR_ALIVE_FILE" 2>/dev/null || echo 0)
+    now_ts=$(date +%s)
+    age=$((now_ts - alive_mtime))
+    if [ "$age" -gt "$SYS_MONITOR_STALE_SEC" ]; then
+        if [ ! -f "$SYS_MONITOR_STALE_MARKER" ]; then
+            logger -t hermes-watchdog "sys-monitor stale for ${age}s (threshold ${SYS_MONITOR_STALE_SEC}s)"
+            PATH="/home/ken/.local/bin:$PATH" hermes send -t telegram \
+                "⚠️ Lai.Fu sys-monitor 監控管線已停止更新超過 15 分鐘，請檢查 sys-monitor.timer" 2>/dev/null || true
+            touch "$SYS_MONITOR_STALE_MARKER"
+        fi
+    else
+        rm -f "$SYS_MONITOR_STALE_MARKER"
+    fi
+fi
 
 fail_count=$(cat "$COUNTER_FILE" 2>/dev/null || echo 0)
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
