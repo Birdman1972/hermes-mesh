@@ -419,6 +419,7 @@ ssh ken@192.168.81.195 'systemctl --user is-active hermes-gateway.service'
 | Telegram 通知未收到 | Lai.Fu hermes gateway 是否正常；`hermes gateway status` |
 | Yggdrasill 無法被喚醒 | 確認 Lai.Fu → Yggdrasill SSH key 已設；`ssh ken@192.168.81.195 exit` |
 | False positive failover | 確認 `FAIL_THRESHOLD=3` 未被改低；檢查 Tailscale 抖動 |
+| L1/L2 持續失敗但兩節點皆正常（如 fail count 累積數百） | 確認 Lai.Fu 自己的 `tailscaled` 是否開機自啟：`systemctl is-enabled tailscaled`；曾發生 disabled+inactive 導致假 failover（2026-07-22 事故） |
 
 ### Disaster Scenarios
 
@@ -431,6 +432,7 @@ ssh ken@192.168.81.195 'systemctl --user is-active hermes-gateway.service'
 | Tailscale down，LAN 正常 | L2 探測仍走 Tailscale IP → 誤判 Wall.E down | 臨時修改 `watchdog.sh` 中 `WALLE_HOST` 為 LAN IP `192.168.81.166` |
 | LAN down，Tailscale 正常 | 探測走 Tailscale，影響最小 | 無需操作 |
 | Telegram/Discord 中斷 | Failover 仍執行，但 Ken 收不到通知 | 主動確認 Yggdrasill 狀態 |
+| Wall.E nginx 開機時 Tailscale 介面尚未就緒 | nginx bind 失敗，反向代理服務（如 SearXNG 8888 外部 proxy）短暫不可用 | 已修復（2026-07-22）：nginx.service drop-in 加 `After=/Wants=tailscaled.service`，防止 boot race |
 
 ---
 
@@ -476,3 +478,4 @@ ssh ken@192.168.81.195 'systemctl --user is-active hermes-gateway.service'
 | 2026-06-04 | v0.1.5 | 修正 Lai.Fu SSH port 22→11322（harden commit）；修正 Yggdrasill Tailscale IP（未加入→100.93.159.12）；Yggdrasill hermes gateway 標記已安裝（v0.15.1，T08 完成）。 | Ken + Claude（Sonnet 4.6） |
 | 2026-06-04 | v0.1.6 | T14 第二監測者：新增 yggdrasill/laifu-monitor.sh + hermes-laifu-monitor.timer（2min 探測，3次失敗告警，不自動接管）；Known Limitations 更新；Future Work 標記已實作。 | Ken + Claude（Sonnet 4.6） |
 | 2026-06-05 | v0.1.7 | T16 wall-e/ 落地：新增 wall-e/health-check.sh + install.sh（gateway/kanban/failover-tasks 三項自檢，Wall.E 實測 3 OK）；檔案結構更新（wall-e/ + yggdrasill/ 均展開）。 | Ken + Claude（Sonnet 4.6） |
+| 2026-07-22 | v0.1.8 | 事故修復：Wall.E `.env` SEARXNG_URL 誤指向 8888（實際監聽 9119）已修正；Wall.E nginx 開機 bind race 加 drop-in 等待 tailscaled；Wall.E 清理 nouveau-pstate/snap-tailscale 兩個孤兒 failed units；Lai.Fu `tailscaled` 開機未自啟（disabled+inactive）導致 17:04 假 failover（fail_count=602，Yggdrasill 誤接管），已 enable+start 並確認 watchdog 自動 handback 成功。Watchdog 故障排查/Disaster Scenarios 新增對應列。 | Ken + Claude（Sonnet 5） |

@@ -287,6 +287,7 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | Q2 | Yggdrasill 是否已加入 Tailscale、其 TS IP 為何 | T10, T11 | ✅ 已解決：Tailscale IP=100.93.159.12（T11 誤記「未加入」已修正） |
 | Q3 | `data/signals/` 目錄用途未定義（無腳本引用） | T15 | 待釐清 |
 | Q4 | failover 對使用者非透明（切到 Yggdrasill 是另一個 bot 身分） | （設計取捨） | 已知限制，見 README「Future Work — 半透明 failover」 |
+| Q5 | Lai.Fu `tailscaled` 開機未自啟，會讓 watchdog 跨網段探測全部失效並觸發假 failover | 監測可靠性 | ✅ 已解決（2026-07-22）：`systemctl enable --now tailscaled`；建議未來加開機自檢 |
 
 > 目前 **無真正 BLOCKED 的任務**（沒有任務因外部不可控因素完全卡死）。Q1/Q2 由 T11 解決，T11 無前置依賴可立即執行。
 
@@ -307,6 +308,8 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | Lai.Fu SSH port | **11322**（hardened，非 22） | 2026-06-04 |
 | Yggdrasill Tailscale IP | **100.93.159.12** | 2026-06-04 |
 | Lai.Fu mem0 memory | **enabled**（user_id=laif-user，agent_id=laif） | 2026-06-09 |
+| Lai.Fu tailscaled | **active + enabled**（2026-07-22 修復假 failover 事故後確認） | 2026-07-22 |
+| Wall.E nginx | **active**（drop-in 已加 After/Wants tailscaled.service，防 boot race） | 2026-07-22 |
 
 ### Forbidden States（絕對不允許的狀態）
 
@@ -355,3 +358,4 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | 2026-06-05 | v2.2 | T16 標記 DONE（wall-e/health-check.sh + install.sh，Wall.E 實測 3 OK）；README 檔案結構更新；Next action 更新為 T17。 | Ken + Claude（Sonnet 4.6） |
 | 2026-06-05 | v2.3 | T17 標記 DONE（shared/scripts/failover-drill.sh，11 項 dry-run + --live 演練）；README v0.1.7 更新；Next action 更新為 T15。 | Ken + Claude（Sonnet 4.6） |
 | 2026-06-09 | v2.4 | T19 加入並標記 DONE（Lai.Fu mem0 啟用，API 實測 PASS）；Topology State 新增 mem0 列；session 摘要更新。 | Ken + Claude（Sonnet 4.6） |
+| 2026-07-22 | v2.5 | Q5 加入並標記已解決（Lai.Fu tailscaled 開機未自啟導致假 failover，17:04 觸發、fail_count=602，已修復+確認 watchdog 自動 handback）；Wall.E `.env` SEARXNG_URL port 修正、nginx boot race drop-in、清理 2 個孤兒 failed units；Topology State 新增 tailscaled/nginx 列。 | Ken + Claude（Sonnet 5） |
