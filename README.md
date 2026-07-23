@@ -235,7 +235,9 @@ hermes-mesh/
 │   └── hermes-watchdog.timer   # OnBootSec=60, OnUnitActiveSec=30
 ├── wall-e/
 │   ├── health-check.sh         # 主腦健康自檢（gateway / kanban / failover-tasks）
-│   └── install.sh              # 部署到 Wall.E（建立 ~/failover-tasks/ + 執行健康檢查）
+│   ├── install.sh              # 部署到 Wall.E（建立 ~/failover-tasks/ + 執行健康檢查）
+│   └── hermes-healthcheck.sh   # Telegram/Discord 告警腳本（hermes-healthcheck.timer 驅動，system-level）
+│                                # 部署路徑：/home/ken/.local/bin/hermes-healthcheck.sh（2026-07-23 起納入版控，先前為未追蹤獨立檔案）
 ├── yggdrasill/
 │   ├── laifu-monitor.sh        # 探測 Lai.Fu（L1: nc TCP + L2: SSH，3次失敗告警）
 │   ├── hermes-laifu-monitor.service
