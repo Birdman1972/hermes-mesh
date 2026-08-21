@@ -8,43 +8,42 @@
 > 架構與規格細節的 **canonical reference 是 [`README.md`](./README.md)**。
 > 本檔案只負責「任務進度與交接」，不重複 README 的完整規格——需要細節時請去讀 README 對應章節。
 
+> **Current-state override — 2026-08-21:** Hermes Mesh is suspended. Wall.E
+> has been decommissioned. Lai.Fu and Yggdrasill have Hermes and all
+> Telegram/Discord delivery disabled. Automatic failover, handback, watchdog,
+> and reverse monitoring are removed. All three-node material below is
+> historical evidence only and must not be used as operational instructions.
+
 | 項目 | 值 |
 |---|---|
-| tasks.md 版本 | **v2.4** |
-| 最後更新 | 2026-06-09 |
-| 對應 README 版本 | v0.1.3 |
+| tasks.md 版本 | **v2.8** |
+| 最後更新 | 2026-08-21 |
+| 對應 README 版本 | v0.2.0 |
 | 維護者 | Ken + AI 助手 |
 
 ---
 
 ## 0. 給「零上下文 session」的 30 秒簡報
 
-`hermes-mesh` 是三台機器組成的 hermes 多節點高可用架構：
+`hermes-mesh` is suspended. The former three-node high-availability design is
+historical only; Wall.E has been decommissioned.
 
-| 角色 | 節點 | 一句話 | 平時狀態 |
+| Role | Node | Current state | Status |
 |---|---|---|---|
-| L0 主腦 PRIMARY | **Wall.E** | 唯一對外服務的腦，跑 agent loop | gateway **active** |
-| L1 監測 WATCHDOG | **Lai.Fu** (Raspberry Pi 2, hostname: Lai-Fu-Hermes) | 每 30s 探測 Wall.E，掛了就觸發 failover；不跑 agent loop | watchdog timer **active** |
-| L2 備援 STANDBY | **Yggdrasill** (x86_64) | 全能力備援腦，平時沉睡 | gateway **disabled / inactive** |
-
-連線資訊（重建/操作時最常用）：
-
-| 節點 | LAN IP | Tailscale IP | SSH port | user |
-|---|---|---|---|---|
-| Wall.E | 192.168.81.166 | 100.119.88.20 | **16622** | ken |
-| Lai.Fu (Lai-Fu-Hermes) | 192.168.81.167 | 100.75.192.113 | **11322**（hardened） | ken |
-| Yggdrasill | 192.168.81.195 | **100.93.159.12** | **19522**（已確認） | ken |
+| Retained node | **Lai.Fu** | Hermes and message delivery disabled | Suspended |
+| Retained node | **Yggdrasill** | Hermes and message delivery disabled | Suspended |
 
 GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 
-**目前整體進度：** L0 主腦 + L1 監測層 + L2 備援層全部上線並驗證；端到端 failover → handback 演練（T12）完成。
-**最關鍵的下一步：** 見 [§5 Session 交接](#5-session-交接handoff) 的「Next recommended action」。
+**Current operational state:** No active Hermes service, message delivery, or
+automatic control path is defined by this repository.
 
 ---
 
-## 1. 全 Session 通用規則（RULES — 任何 session 都必須遵守）
+## 1. Historical operational rules (inactive)
 
-> 這些規則 **override 預設行為**，無論是哪個 AI 助手、哪一天接手都適用。
+> The following rules supported the retired topology. They are retained as
+> historical evidence and do not authorize deployment or re-enablement.
 
 - **R1 — README 是 canonical reference。** 任何架構、規格、節點參數、failover/handback 流程的變更，**必須同步更新 `README.md`**，並在 README 末尾 `Version History` 新增一列（日期 | 版本 | 變更 | 作者）。不可省略。
 - **R2 — 任務狀態必須即時更新本檔案。** 完成、開始、卡住一個任務時，立即更新對應任務的 `狀態` 欄與 `Notes`，並更新 §5 Session 交接區。
@@ -279,7 +278,7 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 
 ---
 
-## 4. 已知阻塞與未決問題（BLOCKED / OPEN QUESTIONS）
+## 4. Historical blockers and open questions (inactive)
 
 | 編號 | 問題 | 影響任務 | 狀態 |
 |---|---|---|---|
@@ -290,13 +289,23 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | Q5 | Lai.Fu `tailscaled` 開機未自啟，會讓 watchdog 跨網段探測全部失效並觸發假 failover | 監測可靠性 | ✅ 已解決（2026-07-22）：`systemctl enable --now tailscaled`；建議未來加開機自檢 |
 | Q6 | handback 停 Yggdrasill gateway 用 `systemctl --user stop` 直送 SIGTERM，未經 `hermes gateway stop` 先寫 planned-stop 標記，導致每次 handback 後落在 `failed` 而非乾淨 `inactive` | 演練驗收準確性 | ✅ 已解決（2026-07-22）：handback.sh 改用 `hermes gateway stop`，live drill 二次驗證通過（105s 內回到乾淨 inactive） |
 
-> 目前 **無真正 BLOCKED 的任務**（沒有任務因外部不可控因素完全卡死）。Q1/Q2 由 T11 解決，T11 無前置依賴可立即執行。
+> Historical note: no task was recorded as truly blocked at that time. Q1/Q2
+> were resolved by T11. This does not define current work.
 
 ---
 
-## 5. Session 交接（HANDOFF）
+## 5. Session handoff (current suspension record)
 
-### Current Topology State（每個 session 開始前核對）
+### Current state as of 2026-08-21
+
+| Check | Current state | Evidence |
+|---|---|---|
+| Wall.E | Decommissioned; no active repository topology entry | 2026-08-21 repository decommission |
+| Lai.Fu | Suspended; Hermes and Telegram/Discord delivery disabled | 2026-08-21 repository decommission |
+| Yggdrasill | Suspended; Hermes and Telegram/Discord delivery disabled | 2026-08-21 repository decommission |
+| Automatic failover, handback, watchdog, and reverse monitoring | Removed; no automatic control path | 2026-08-21 repository decommission |
+
+### Historical pre-suspension topology state (do not operate)
 
 | 檢查項目 | 當前狀態 | 最後驗證 |
 |---|---|---|
@@ -312,7 +321,7 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 | Lai.Fu tailscaled | **active + enabled**（2026-07-22 修復假 failover 事故後確認） | 2026-07-22 |
 | Wall.E nginx | **active**（drop-in 已加 After/Wants tailscaled.service，防 boot race） | 2026-07-22 |
 
-### Forbidden States（絕對不允許的狀態）
+### Historical forbidden states (inactive)
 
 - ❌ Wall.E gateway active **且** Yggdrasill gateway active（雙主腦）
 - ❌ Lai.Fu 執行任何資料庫寫入
@@ -321,20 +330,24 @@ GitHub repo：<https://github.com/Birdman1972/hermes-mesh>
 
 ---
 
-### 上一個 session 摘要（2026-06-09）
+### Historical session summary (2026-06-09)
 - T19 完成（mem0 記憶啟用）：安裝 mem0ai 依賴（posthog/qdrant-client/grpcio）、config 設 memory_enabled=true、API 實測 PASS。
 - 注意：Pi 2 /tmp 只有 128M (tmpfs)，裝 grpcio 前必須先 `pip cache purge` 清出空間。
 - hermes-gateway restart 後 active，mem0 雲端 API 正常連線。
 
-### Next recommended action（下一個 session 從這裡開始）
+### Current next action
+
+None. Hermes Mesh remains suspended. Any re-enablement requires a new,
+explicitly approved architecture and deployment plan.
+
+### Historical last recorded recommendations (inactive)
 
 1. **T15**：Approach D — Lai.Fu SSH kanban 委派（探索性，建議 dual-brain 先）
 3. **ROADMAP §8**：備援目標等級（冷/熱/查清楚後再定）、目錄重組（待 Ken 拍板）
 
-### 接手前必讀
-- 本檔案 §0（30 秒簡報）+ §1（通用規則 R1–R9）。
-- `README.md`——尤其「Operational Runbook」（日常確認 / 手動 failover+handback / 故障排查）與「Disaster Scenarios」。
-- 操作 Yggdrasill 前先讀 `yggdrasill/standby.md`。
+### Current session reading
+- Read `README.md` and this section before considering any Hermes Mesh work.
+- `yggdrasill/standby.md` records the Yggdrasill suspension state.
 
 ---
 

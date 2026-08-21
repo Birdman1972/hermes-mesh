@@ -1,8 +1,15 @@
 # hermes-mesh 架構演進 Roadmap
 
 > **文件定位**：架構決策與演進路線，非操作手冊。
-> 操作手冊（安裝、failover、handback、故障排查）見 [README.md](./README.md)。
+> The current suspension blueprint is [README.md](./README.md).
 > 任務進度追蹤見 [tasks.md](./tasks.md)。
+
+> **Historical roadmap — inactive as of 2026-08-21:** Wall.E has been
+> decommissioned. Lai.Fu and Yggdrasill are suspended, with Hermes and all
+> Telegram/Discord delivery disabled. No automatic failover, handback,
+> watchdog, or reverse monitoring remains. The design material below is
+> preserved only as historical research and must not be used to operate or
+> redeploy Hermes Mesh.
 
 | 項目 | 值 |
 |---|---|
@@ -12,9 +19,10 @@
 
 ---
 
-## §1 現況定錨
+## §1 Historical topology snapshot
 
-hermes-mesh 目前是一套 **witness-arbitrated 冷備援（cold standby）**：
+At the time of this historical snapshot, hermes-mesh was a
+**witness-arbitrated cold standby** deployment:
 
 | 角色 | 節點 | 平時狀態 |
 |---|---|---|
@@ -22,18 +30,19 @@ hermes-mesh 目前是一套 **witness-arbitrated 冷備援（cold standby）**�
 | 見證/仲裁 WATCHDOG | Lai.Fu (Pi 2) | 每 30s 探測 Wall.E，觸發 failover |
 | 備援腦 STANDBY | Yggdrasill | gateway **disabled + stopped**，等待喚醒 |
 
-節點規格、failover/handback 流程、split-brain 防護細節 → 見 [README.md](./README.md)。
+Former node specifications and failover/handback details are historical only;
+the current suspension blueprint is [README.md](./README.md).
 
 ---
 
 ## §2 備援光譜：從冷備援到雲端多活
 
 ```
-冷備援(現在) ──→ 熱備援 ──→ 半多活 ──→ 全多活(雲端式)
+冷備援(歷史狀態) ──→ 熱備援 ──→ 半多活 ──→ 全多活(雲端式)
    省心 ←────────────────────────────────→ 高效但複雜
 ```
 
-### 冷備援（Cold Standby）——現況
+### 冷備援（Cold Standby）——historical state
 
 - **運作**：Yggdrasill 平時完全關機（disabled+stopped）。Wall.E 掛掉 → Lai.Fu 探測失敗 3 次（~90s）→ SSH 喚醒 Yggdrasill → Yggdrasill 開機、載入設定、連線 Telegram。
 - **切換速度**：分鐘級（含開機時間）。
@@ -69,9 +78,9 @@ hermes-mesh 目前是一套 **witness-arbitrated 冷備援（cold standby）**�
 
 ## §3 雲端多活的三根柱子
 
-雲端能做到全多活，是因為同時滿足三個前提。hermes-mesh 目前一根都沒有：
+雲端能做到全多活，是因為同時滿足三個前提。在此歷史快照中，hermes-mesh 一根都沒有：
 
-| 柱子 | 雲端怎麼做 | hermes-mesh 現況 | 補的代價 |
+| 柱子 | 雲端怎麼做 | hermes-mesh historical state | 補的代價 |
 |---|---|---|---|
 | **1. 共享帳本** | 所有節點讀寫同一個資料庫（PostgreSQL + replication） | ❌ 各節點本地 SQLite，永不共享（D1） | 換掉 SQLite → 共享 DB，解決 write conflict 與去重；工程量大 |
 | **2. 單一對外身分** | 一個網址/bot token，前面 Load Balancer 分流 | ❌ 各節點獨立 bot token（D4），對外是不同身分 | 統一 bot token + proxy 層；或改用 webhook 模式集中接收再分發 |
@@ -102,7 +111,7 @@ hermes（v0.15.1）在 hermes-mesh 中當**黑盒子**使用，其原始碼不�
 
 > 這比目錄整理、比升熱備援都更優先。——GPT-5.5 adversarial review 結論
 
-**現狀**：R10「任何時刻最多只有一個 gateway active」目前只是 tasks.md 裡的文字規定，依靠：
+**Historical state**：R10「任何時刻最多只有一個 gateway active」在當時只是 tasks.md 裡的文字規定，依靠：
 - Yggdrasill 預設 disabled（人工配置）
 - lockfile `/run/user/*/laifu-active`（Lai.Fu 本地，重啟消失）
 - 90s debounce（降低誤判）
@@ -113,7 +122,7 @@ hermes（v0.15.1）在 hermes-mesh 中當**黑盒子**使用，其原始碼不�
 **目標**：升級成 **gateway 啟動條件（lease gate / fencing）**：
 
 ```
-目前（best-effort）：
+歷史方案（best-effort）：
   Lai.Fu 判斷 Wall.E 掛了 → SSH start Yggdrasill
 
 目標（hard invariant）：
@@ -137,7 +146,7 @@ hermes（v0.15.1）在 hermes-mesh 中當**黑盒子**使用，其原始碼不�
 ## §6 建議路線（PM 視角）
 
 ```
-Phase 0（現在進行）：完成冷備援基礎
+Phase 0（historical plan）：完成冷備援基礎
   T08 Yggdrasill hermes 安裝 standby
   T09 獨立 bot token
   T12 端到端 failover 演練
@@ -166,7 +175,7 @@ Phase 3（遠期，需求驅動）：全多活
 
 > 這是獨立 track，不影響 §6 的執行路線。
 
-**問題**：目前 README.md（463 行）+ tasks.md（305 行）把三節點全部包山包海。任何 AI session 或新人接手都必須讀完整份才能上工，改一個節點容易動到另一個節點的描述。
+**Historical issue**：當時的 README.md（463 行）+ tasks.md（305 行）把三節點全部包山包海。任何 AI session 或新人接手都必須讀完整份才能上工，改一個節點容易動到另一個節點的描述。
 
 **方向**：節點自治單元 + 細腰共用契約（Node-Autonomous Cells + Thin-Waist Shared Contract）
 
@@ -205,8 +214,8 @@ hermes-mesh/
 |---|---|---|
 | **Split-brain lease gate 優先嗎？** | ✅ 是，比其他事都優先（GPT-5.5 強調） | A) 是，列為 T18 立即排入 Phase 1 / B) 暫緩，Phase 0 完成再議 |
 | **目標備援等級** | 短期冷備援做穩，中期評估熱備援（前提是 §4 查清楚） | A) 冷備援即終點 / B) 中期升熱備援 / C) 查清楚 hermes 能力後再定 |
-| **目錄要不要重組** | 先拆 docs，腳本維持現狀 | A) 扁平結構（wall-e/ lai-fu/ 放根層，Opus 建議）/ B) nodes/ 子目錄（GPT-5.5 建議，更整齊但改動多）|
-| **hermes 多活能力查證** | 應該查，但不急於現在 | A) 現在就 SSH 到 Wall.E 查 hermes --help / B) Phase 0 完成後再查 |
+| **目錄要不要重組** | Historical proposal: split docs first and keep scripts in place | A) 扁平結構（wall-e/ lai-fu/ 放根層，Opus 建議）/ B) nodes/ 子目錄（GPT-5.5 建議，更整齊但改動多）|
+| **hermes 多活能力查證** | Historical proposal; no longer applicable | A) 於當時 SSH 到 Wall.E 查 hermes --help / B) Phase 0 完成後再查 |
 
 ---
 
