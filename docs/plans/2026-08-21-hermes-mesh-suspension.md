@@ -1,5 +1,5 @@
 ---
-status: active
+status: complete
 date: 2026-08-21
 title: Suspend Hermes Mesh and Decommission Wall.E
 ---
