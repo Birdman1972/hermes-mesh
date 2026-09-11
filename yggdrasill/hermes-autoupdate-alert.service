@@ -1,0 +1,7 @@
+[Unit]
+Description=Alert Ken when Hermes auto update fails
+
+[Service]
+Type=oneshot
+ExecStart=/home/ken/.local/bin/hermes-autoupdate-alert.sh
+TimeoutStartSec=120

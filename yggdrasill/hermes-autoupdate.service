@@ -1,0 +1,10 @@
+[Unit]
+Description=Hermes Agent auto update
+After=network-online.target
+Wants=network-online.target
+OnFailure=hermes-autoupdate-alert.service
+
+[Service]
+Type=oneshot
+ExecStart=/home/ken/.local/bin/hermes update --yes
+TimeoutStartSec=1800
