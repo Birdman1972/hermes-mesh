@@ -1,0 +1,36 @@
+project:
+  name: hermes-mesh
+  repo_dir: ~/hermes-mesh
+
+vault:
+  root: ~/Documents/Obsidian Vault
+  sub_vault: Hermes-Mesh
+
+pull_map:
+  static:
+    - src: README.md
+      dst: 10-State/README.md
+    - src: tasks.md
+      dst: 10-State/tasks.md
+    - src: ROADMAP.md
+      dst: 20-Plans/ROADMAP.md
+  static_abs:
+    - src: "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects/-home-ken-hermes-mesh/memory/MEMORY.md"
+      dst: 30-Memory/MEMORY.md
+  dynamic:
+    - src_dir: docs/plans/active
+      dst_dir: 20-Plans
+      pattern: "*.md"
+      exclude: []
+    - src_dir: memory
+      dst_dir: 30-Memory
+      pattern: "*.md"
+      exclude:
+        - MEMORY.md
+
+graphify:
+  vault_graph_dir: 70-Graph
+  graph_report: graphify-out/GRAPH_REPORT.md
+
+memory:
+  claude_memory_dir: "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/projects/-home-ken-hermes-mesh/memory"
